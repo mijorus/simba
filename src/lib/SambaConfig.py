@@ -1,18 +1,23 @@
 import re
 import hashlib
 import os
+from dataclasses import dataclass
 import gi
-
 
 from . import terminal
 from gi.repository import GLib  # noqa
 
-
-from pprint import pprint
-
-
+@dataclass
+class SambaShare:
+    name: str
+    share_path: str
+    comment: str
+    writeable: bool
+    public: bool
 
 class SambaConfig():
+    RESERVED_SECTIONS = ['homes', 'printers', 'global']
+
     def __init__(self, override_config_file_location=None) -> None:
         flatpak_prefix = '/var/run/host'
         self.config_file_location = '/etc/samba/smb.conf'
@@ -75,16 +80,36 @@ class SambaConfig():
     def create_section(self, section: str, data: dict):
         self.data[f'[{section}]'] = data
 
-    def create_share(self, name: str, share_path: str, writeable: bool, public: bool, comment=''):
-        self.create_section(name, {
-            'path': share_path,
-            'writeable': writeable,
-            'public': public,
+    def create_share(self, share: SambaShare):
+        self.create_section(share.name, {
+            'path': share.share_path,
+            'writeable': share.writeable,
+            'public': share.public,
             'browseable': True,
-            'create_mask': '0644', # we manually enforce 0644, default value would be 0755
-            'directory_mask': '0755',  # we are just expliciting the permission here, as 0755 is already the default for new directories
-            'comment': comment
+            'comment': share.comment,
+            # we manually enforce 0644, default value would be 0755
+            'create_mask': '0644', 
+            # we are just expliciting the permission here, as 0755 is already the default for new directories
+            'directory_mask': '0755',  
         })
+
+    def list_shares(self) -> list[SambaShare]:
+        shares = []
+        for section, data in self.data.items():
+            if f'[{section}]' in self.RESERVED_SECTIONS:
+                continue
+
+            share = SambaShare(
+                name=section,
+                share_path=data.get('path', ''),
+                comment=data.get('comment', ''),
+                writeable=data.get('writeable', True),
+                public=data.get('public', True)
+            )
+
+            shares.append(share)
+
+        return shares
 
     def _parse_key(self, key):
         key = key.strip().replace(' ', '_')
