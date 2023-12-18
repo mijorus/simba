@@ -2,8 +2,9 @@ import re
 import hashlib
 import os
 import gi
-import .terminal
 
+
+from . import terminal
 from gi.repository import GLib  # noqa
 
 
@@ -13,9 +14,13 @@ from pprint import pprint
 
 class SambaConfig():
     def __init__(self, override_config_file_location=None) -> None:
+        flatpak_prefix = '/var/run/host'
         self.config_file_location = '/etc/samba/smb.conf'
+        self.tmp_config_file_location = GLib.get_user_cache_dir()
+
         if os.environ.get('container') == 'flatpak':
-            self.config_file_location = '/var/run/host' + self.config_file_location
+            self.config_file_location = flatpak_prefix + self.config_file_location
+            # self.tmp_config_file_location = flatpak_prefix + self.tmp_config_file_location
 
         if override_config_file_location:
             self.config_file_location = override_config_file_location
@@ -39,18 +44,20 @@ class SambaConfig():
         text_content = '\n'.join(content)
 
         # check file validity
-        testfile_path = f'{GLib.get_tmp_dir()}/simba_smb_validate.conf'
+        testfile_path = f'{self.tmp_config_file_location}/simba_smb_validate.conf'
         with open(testfile_path, 'w+') as f:
             f.write(text_content)
 
-        terminal.host_sh(['testparam', testfile_path])
+        terminal.host_sh(['testparm', '--suppress-prompt', testfile_path])
+
+        terminal.host_sh(['pkexec', 'cp', testfile_path, self.config_file_location])
+
+        if os.path.exists(testfile_path):
+            os.remove(testfile_path)
 
         # backup old file
         
         # request su permission
-            
-            
-            
 
     def get_md5(self):
         filehash = ''
@@ -66,7 +73,7 @@ class SambaConfig():
         return self.data.get(f'[{section}]', None)
     
     def create_section(self, section: str, data: dict):
-        self.data[f'[{section}]'] = {}
+        self.data[f'[{section}]'] = data
 
     def create_share(self, name: str, share_path: str, writeable: bool, public: bool, comment=''):
         self.create_section(name, {

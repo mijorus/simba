@@ -9,7 +9,7 @@ def host_sh(command: List[str], return_stderr=False, **kwargs) -> str:
     try:
         cmd = ['flatpak-spawn', '--host', *command]
         
-        logging.log(f'Running {command}')
+        print(f'Running {command}')
         output = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, **kwargs)
         output.check_returncode()
     except subprocess.CalledProcessError as e:
@@ -24,7 +24,7 @@ def sandbox_sh(command: List[str], return_stderr=False, **kwargs) -> str:
     try:
         cmd = [*command]
         
-        logging.log(f'Running {command}')
+        print(f'Running {command}')
         output = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, **kwargs)
         output.check_returncode()
     except subprocess.CalledProcessError as e:

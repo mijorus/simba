@@ -17,6 +17,13 @@ class MainWindow(Gtk.ApplicationWindow):
             **kwargs
         )
 
+        # Application logic
+        self.config_manager = SambaConfig()
+
+        self.config_manager.create_share('test', '/tmp', True, True, 'asd')
+        self.config_manager.save()
+
+        # Gtk stuff
         self.set_default_size(400, 400)
 
         header_bar = Adw.HeaderBar(title_widget=Gtk.Label.new(window_title))
@@ -33,10 +40,12 @@ class MainWindow(Gtk.ApplicationWindow):
             content=Adw.NavigationPage(child=view_stack, title='test')
         )
 
-        self.smbconf_filehash = SambaConfig.get_md5()
+        self.smbconf_filehash = self.config_manager.get_md5()
         print('hash:' + self.smbconf_filehash)
 
         self.set_child(navigation_splitview)
+
+
 
 
     
