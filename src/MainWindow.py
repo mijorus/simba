@@ -2,6 +2,7 @@ import os
 import gi
 
 from .lib.SambaConfig import SambaConfig
+from .components.SharedFolders import SharedFolders
 
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
@@ -20,17 +21,16 @@ class MainWindow(Gtk.ApplicationWindow):
         # Application logic
         self.config_manager = SambaConfig()
 
-        self.config_manager.create_share('test', '/tmp', True, True, 'asd')
-        self.config_manager.save()
-
         # Gtk stuff
-        self.set_default_size(400, 400)
+        self.set_default_size(1000, 700)
 
         header_bar = Adw.HeaderBar(title_widget=Gtk.Label.new(window_title))
         self.set_titlebar(header_bar)
 
-        view_stack = Gtk.Stack()
-        view_stack.add_titled(Gtk.Label.new('shared folders'), 'shared_folders', _('Shared folders'))
+        samba_shares = self.config_manager.list_shares()
+
+        view_stack = Gtk.Stack(margin_top=30)
+        view_stack.add_titled(SharedFolders(samba_shares), 'shared_folders', _('Shared folders'))
         view_stack.add_titled(Gtk.Label.new('printers'), 'printers', _('Printers and devices'))
         view_stack.add_titled(Gtk.Label.new('settings'), 'settings', _('Preferences'))
 

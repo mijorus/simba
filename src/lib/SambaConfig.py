@@ -96,9 +96,9 @@ class SambaConfig():
     def list_shares(self) -> list[SambaShare]:
         shares = []
         for section, data in self.data.items():
-            if f'[{section}]' in self.RESERVED_SECTIONS:
+            if f'{section}' in self.RESERVED_SECTIONS:
                 continue
-
+            print(section)
             share = SambaShare(
                 name=section,
                 share_path=data.get('path', ''),
@@ -125,7 +125,6 @@ class SambaConfig():
 
         value = str(value)
         return value
-
 
     def _parse_value(self, value: str):
         parsed_value = value
@@ -154,6 +153,7 @@ class SambaConfig():
                 continue
 
             if section_re.match(line):
+                line = line.replace('[', '').replace(']', '')
                 self.data[line] = {}
                 self.original_raw_data[line] = {}
                 curr_section = line
