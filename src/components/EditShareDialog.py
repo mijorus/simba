@@ -9,24 +9,48 @@ from ..lib.SambaConfig import SambaShare
 from gi.repository import Gtk, Adw  # noqa
 
 
+class FormRow(Adw.PreferencesGroup):
+    def __init__(self, title: str, text: str, description: str = '') -> None:
+        super().__init__(
+            orientation=Gtk.Orientation.VERTICAL,
+
+        )
+
+        container = Gtk.ListBox(css_classes=['boxed-list'])
+
+        self.entry = Adw.EntryRow(
+            title=title,
+            selectable=False,
+            text=text
+        )
+
+        desc = Gtk.Label(
+            label=description,
+            css_classes=['dim-label']
+        )
+
+        container.append(self.entry)
+        
+
+        self.append(container)
+        self.append(desc)
+
+
 class EditShareDialog():
     def __init__(self, parent, share: SambaShare):
         self.widget = Adw.MessageDialog.new(parent)
-        self.widget.set_heading(share.name)
+        self.widget.set_heading(_('Edit share'))
+        self.widget.set_resizable(True)
 
         self.widget.add_response("cancel",  _("_Cancel"))
         self.widget.add_response( "save",    _("_Save"))
 
         container = Gtk.Box(vexpand=True, orientation=Gtk.Orientation.VERTICAL)
-        form = Gtk.ListBox(css_classes=['boxed-list'])
+        form = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
 
-        name_entry = Adw.EntryRow(
-            title=_('Name'),
-            selectable=False,
-            text=share.name
-        )
+        name_entry = FormRow(_('Name'), share.name, 'sadasddsa')
 
-        name_entry.connect('changed', self.on_name_changed)
+        name_entry.entry.connect('changed', self.on_name_changed)
 
         desc_entry = Adw.EntryRow(
             title=_('Description'),
@@ -50,9 +74,11 @@ class EditShareDialog():
         self.widget.show()
 
     def on_name_changed(self, widget):
-        if widget.get_text():
-            self.widget.set_heading(widget.get_text())
-            self.widget.remove_css_class('dim-heading-dialog')
-        else:
-            self.widget.set_heading(_('Insert a name'))
-            self.widget.add_css_class('dim-heading-dialog')
+        # if widget.get_text():
+        #     self.widget.set_heading(widget.get_text())
+        #     self.widget.remove_css_class('dim-heading-dialog')
+        # else:
+        #     self.widget.set_heading(_('Insert a name'))
+        #     self.widget.add_css_class('dim-heading-dialog')
+
+        pass
