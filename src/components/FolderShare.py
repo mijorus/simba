@@ -13,8 +13,10 @@ from gi.repository import Gtk, Adw  # noqa
 
 class FolderShare(Adw.PreferencesGroup):
     def __init__(self, share: SambaShare):
+        detail = '' if not share.writeable else _('[Read only]')
+
         super().__init__(
-            title=share.name,
+            title=(share.name + ' ' +detail),
             description=share.comment,
             css_classes=["folder-share"],
         )

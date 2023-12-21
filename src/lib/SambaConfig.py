@@ -139,8 +139,8 @@ class SambaConfig():
         parsed_value = value
         parsed_value = parsed_value.strip()
 
-        if value in ['yes', 'no', '1', '0', 'true', 'false']:
-            parsed_value = value in ['yes', '1', 'true']
+        if parsed_value in ['yes', 'no', '1', '0', 'true', 'false']:
+            parsed_value = parsed_value in ['yes', '1', 'true']
 
         return parsed_value
 
@@ -172,5 +172,6 @@ class SambaConfig():
                 key = self._parse_key(key)
                 parsed_value = self._parse_value(value)
 
+                # print(key, parsed_value)
                 self.data[curr_section][key] = parsed_value
                 self.original_raw_data[curr_section][key] = value
