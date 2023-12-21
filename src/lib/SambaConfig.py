@@ -16,7 +16,7 @@ class SambaShare:
     public: bool
 
 class SambaConfig():
-    RESERVED_SECTIONS = ['homes', 'printers', 'global']
+    RESERVED_SECTIONS = ['homes', 'printers', 'global', 'print$']
 
     def __init__(self, override_config_file_location=None) -> None:
         flatpak_prefix = '/var/run/host'
@@ -83,7 +83,13 @@ class SambaConfig():
     def create_section(self, section: str, data: dict):
         self.data[f'[{section}]'] = data
 
+    def check_valid_share_name(self, name: str) -> bool:
+        return name not in self.RESERVED_SECTIONS
+
     def create_share(self, share: SambaShare):
+        if not self.check_valid_share_name(share.name):
+            raise Exception(f'{share.name} is reserved and cannot be used')
+
         self.create_section(share.name, {
             'path': share.share_path,
             'writeable': share.writeable,

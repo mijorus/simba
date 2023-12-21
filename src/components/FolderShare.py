@@ -48,4 +48,6 @@ class FolderShare(Adw.PreferencesGroup):
     def on_edit_btn_clicked(self, widget: Gtk.Button):
         top_level = Gtk.Window.get_toplevels()[0]
         edit_modal = EditShareDialog(top_level, self.share)
+
+        top_level.set_modal(edit_modal)
         edit_modal.show()
