@@ -4,7 +4,6 @@ import gi
 from .utils import make_option
 from .MainWindow import MainWindow
 from .ShortcutsWindow import ShortcutsWindow
-from .components.UpdateDialog import UpdateDialog
 from .lib.DbusService import DbusService, GNOME_EXTENSION_LINK
 
 gi.require_version('Gtk', '4.0')
@@ -38,6 +37,9 @@ class Simba(Adw.Application):
         return -1
 
     def do_startup(self):
+        css_provider = Gtk.CssProvider()
+        css_provider.load_from_resource('/it/mijorus/simba/assets/style.css')
+        Gtk.StyleContext.add_provider_for_display(Gdk.Display.get_default(), css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
         Adw.Application.do_startup(self)
 
     def do_activate(self):

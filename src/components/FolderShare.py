@@ -2,6 +2,7 @@ import os
 import gi
 
 from ..lib.SambaConfig import SambaShare
+from .EditShareDialog import EditShareDialog
 
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
@@ -14,14 +15,21 @@ class FolderShare(Adw.PreferencesGroup):
     def __init__(self, share: SambaShare):
         super().__init__(
             title=share.name,
-            description=share.comment
+            description=share.comment,
+            css_classes=["folder-share"],
         )
 
+        self.share = share
+
         self.edit_button = Gtk.Button(
-            css_classes=['flat'],
-            icon_name='pencil-symbolic',
-            label=_('Edit')
+            css_classes=['flat', 'pill'],
+            child=Adw.ButtonContent(
+                icon_name='pencil-symbolic',
+                label=_('Edit')
+            )
         )
+
+        self.edit_button.connect('clicked', self.on_edit_btn_clicked)
 
         features_list = Gtk.ListBox(css_classes=['boxed-list'])
 
@@ -36,3 +44,8 @@ class FolderShare(Adw.PreferencesGroup):
 
         self.set_header_suffix(self.edit_button)
         self.add(features_list)
+
+    def on_edit_btn_clicked(self, widget: Gtk.Button):
+        top_level = Gtk.Window.get_toplevels()[0]
+        edit_modal = EditShareDialog(top_level, self.share)
+        edit_modal.show()
