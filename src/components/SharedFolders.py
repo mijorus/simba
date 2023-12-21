@@ -25,10 +25,12 @@ class SharedFolders(Gtk.Box):
         )
 
         btns_row = Gtk.Box(
-            orientation=Gtk.Orientation.HORIZONTAL
+            orientation=Gtk.Orientation.HORIZONTAL,
+            halign=Gtk.Align.END
         )
 
         add_btn = Gtk.Button(
+            css_classes=['suggested-action'],
             child=Adw.ButtonContent(
                 icon_name='pencil-symbolic',
                 label=_('Save')

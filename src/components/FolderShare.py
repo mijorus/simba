@@ -22,7 +22,7 @@ class FolderShare(Adw.PreferencesGroup):
         self.share = share
 
         self.edit_button = Gtk.Button(
-            css_classes=['flat', 'pill'],
+            css_classes=['flat'],
             child=Adw.ButtonContent(
                 icon_name='pencil-symbolic',
                 label=_('Edit')
