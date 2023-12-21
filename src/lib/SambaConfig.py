@@ -55,7 +55,10 @@ class SambaConfig():
 
         terminal.host_sh(['testparm', '--suppress-prompt', testfile_path])
 
-        terminal.host_sh(['pkexec', 'cp', testfile_path, self.config_file_location])
+        terminal.host_sh([
+            'pkexec', 'cp', testfile_path, self.config_file_location, '&&',
+            'systemctl', '--quiet', 'reload', 'smbd'
+        ])
 
         if os.path.exists(testfile_path):
             os.remove(testfile_path)

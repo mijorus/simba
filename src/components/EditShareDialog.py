@@ -17,6 +17,5 @@ class EditShareDialog():
         self.widget.add_response("cancel",  _("_Cancel"))
         self.widget.add_response( "save",    _("_Save"))
 
-
     def show(self):
         self.widget.show()

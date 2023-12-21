@@ -1,7 +1,7 @@
 import os
 import gi
 
-from ..lib.SambaConfig import SambaShare
+from ..lib.SambaConfig import SambaShare, SambaConfig
 from .FolderShare import FolderShare
 
 gi.require_version('Gtk', '4.0')
@@ -12,8 +12,10 @@ from gi.repository import Gtk, Adw  # noqa
 
 
 class SharedFolders(Gtk.Box):
-    def __init__(self, shares: list[SambaShare]):
+    def __init__(self, shares: list[SambaShare], manager=SambaConfig):
         super().__init__()
+
+        self.manager = manager
 
         viewport = Gtk.Viewport.new()
         clamp = Adw.Clamp.new()
@@ -22,6 +24,21 @@ class SharedFolders(Gtk.Box):
             orientation=Gtk.Orientation.VERTICAL
         )
 
+        btns_row = Gtk.Box(
+            orientation=Gtk.Orientation.HORIZONTAL
+        )
+
+        add_btn = Gtk.Button(
+            child=Adw.ButtonContent(
+                icon_name='pencil-symbolic',
+                label=_('Save')
+            )
+        )
+
+        add_btn.connect('clicked', self.on_save_btn_clicked)
+        btns_row.append(add_btn)
+        list_widget.append(btns_row)
+
         for share in shares:
             list_widget.append(FolderShare(share))
 
@@ -29,3 +46,6 @@ class SharedFolders(Gtk.Box):
         viewport.set_child(clamp)
 
         self.append(viewport)
+
+    def on_save_btn_clicked(self, widget: Gtk.Button):
+        self.manager.save()

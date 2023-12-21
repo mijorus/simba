@@ -30,7 +30,7 @@ class MainWindow(Gtk.ApplicationWindow):
         samba_shares = self.config_manager.list_shares()
 
         view_stack = Gtk.Stack(margin_top=30)
-        view_stack.add_titled(SharedFolders(samba_shares), 'shared_folders', _('Shared folders'))
+        view_stack.add_titled(SharedFolders(samba_shares, self.config_manager), 'shared_folders', _('Shared folders'))
         view_stack.add_titled(Gtk.Label.new('printers'), 'printers', _('Printers and devices'))
         view_stack.add_titled(Gtk.Label.new('settings'), 'settings', _('Preferences'))
 
