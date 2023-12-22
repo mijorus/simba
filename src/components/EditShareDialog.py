@@ -7,26 +7,37 @@ gi.require_version('Adw', '1')
 
 from ..lib.SambaConfig import SambaShare
 
-from gi.repository import Gtk, Adw  # noqa
+from gi.repository import Gtk, Adw, GObject  # noqa
 
 
 class FormRow(Gtk.Box):
-    def __init__(self, title: str, text: str, max_length=100, description: str='') -> None:
+    def __init__(self, title: str, text: str, max_length=100, description: str='', valitator: callable=None) -> None:
+        """
+            validator: The validator function should return a new string with the validated content
+        """
         super().__init__(
             orientation=Gtk.Orientation.VERTICAL,
             margin_bottom=10
         )
+
+        self.max_length = max_length
 
         container = Gtk.ListBox(css_classes=['boxed-list'])
 
         self.entry = Adw.EntryRow(
             title=title,
             text=text,
-            max_length=max_length
+            enable_emoji_completion=False
         )
 
+        self.entry.get_delegate().set_max_length(max_length)
+
+        self.validator = valitator
+        if self.validator:
+            self.entry.get_delegate().connect('insert-text', self.on_entry_changed)
+
         desc = Gtk.Label(
-            label=description,
+            label=description + ' (max. {max_char} characters)'.format(max_char=max_length),
             halign=Gtk.Align.START,
             css_classes=['dim-label', 'toolbar', 'caption']
         )
@@ -35,6 +46,15 @@ class FormRow(Gtk.Box):
 
         self.append(container)
         self.append(desc)
+
+    def on_entry_changed(self, widget, text, *args):
+        content = widget.get_text() + text
+        validated = self.validator(content)
+
+        if validated != content:
+            GObject.signal_stop_emission_by_name(widget, 'insert-text')
+            widget.set_text(validated)
+
 
 class FormContainer(Gtk.ListBox):
     def __init__(self) -> None:
@@ -45,10 +65,10 @@ class FormContainer(Gtk.ListBox):
         )
 
 class EditShareDialog():
-    def __init__(self, parent, share: SambaShare):
+    def __init__(self, parent, share: SambaShare, new_share=False):
         self.share = share
         self.widget = Adw.MessageDialog.new(parent)
-        self.widget.set_heading(_('Edit share'))
+        self.widget.set_heading(_('Create share') if new_share else _('Edit share'))
         self.widget.set_resizable(True)
 
         self.widget.add_response("cancel",  _("_Cancel"))
@@ -63,9 +83,9 @@ class EditShareDialog():
         form = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
 
         self.name_entry = FormRow(
-            _('Name'), 
-            share.name,
-            _('How share will be visible on the network'),
+            title=_('Name'), 
+            text=share.name,
+            description=_('How share will be visible on the network'),
             max_length=8
         )
 
@@ -74,6 +94,7 @@ class EditShareDialog():
         self.desc_entry = FormRow(
             title=_('Description'),
             text=share.comment,
+            max_length=100,
             description=_('Additional information that might be helpful to identify this share')
         )
 

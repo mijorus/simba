@@ -1,3 +1,10 @@
+### Useful for this file
+### https://manpages.ubuntu.com/manpages/jammy/man5/smb.conf.5.html
+### https://www.samba.org/samba/docs/current/man-html/smb.conf.5.html
+### 
+### Pay attention to
+### https://manpages.ubuntu.com/manpages/jammy/man5/smb.conf.5.html#warnings
+
 import re
 import hashlib
 import os
@@ -14,6 +21,16 @@ class SambaShare:
     comment: str
     writeable: bool
     public: bool
+
+    @staticmethod
+    def create_empty():
+        return SambaShare(
+            name='',
+            share_path='',
+            comment='',
+            writeable=True,
+            public=True
+        )
 
 class SambaConfig():
     RESERVED_SECTIONS = ['homes', 'printers', 'global', 'print$']
@@ -83,12 +100,19 @@ class SambaConfig():
     def create_section(self, section: str, data: dict):
         self.data[f'[{section}]'] = data
 
-    def check_valid_share_name(self, name: str) -> bool:
-        return name not in self.RESERVED_SECTIONS
+    def check_valid_share_name(self, name: str) -> tuple:
+        if name not in self.RESERVED_SECTIONS:
+            return (False, 'name reserved')
+        
+        if len(name) > 8:
+            return (False, 'name is too long')
+        
+        return (True, '')
 
     def create_share(self, share: SambaShare):
-        if not self.check_valid_share_name(share.name):
-            raise Exception(f'{share.name} is reserved and cannot be used')
+        name_check, name_check_error = self.check_valid_share_name(share.name)
+        if not name_check:
+            raise Exception(f'{share.name}: ' + name_check_error)
 
         self.create_section(share.name, {
             'path': share.share_path,

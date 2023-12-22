@@ -3,6 +3,7 @@ import gi
 
 from ..lib.SambaConfig import SambaShare, SambaConfig
 from .FolderShare import FolderShare
+from .EditShareDialog import EditShareDialog
 
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
@@ -30,14 +31,23 @@ class SharedFolders(Gtk.Box):
         )
 
         add_btn = Gtk.Button(
+            css_classes=['flat'],
+            child=Adw.ButtonContent(
+                icon_name='plus-symbolic',
+                label=_('Add')
+            )
+        )
+
+        save_btn = Gtk.Button(
             css_classes=['suggested-action'],
             child=Adw.ButtonContent(
-                icon_name='pencil-symbolic',
+                icon_name='save-symbolic',
                 label=_('Save')
             )
         )
 
-        add_btn.connect('clicked', self.on_save_btn_clicked)
+        add_btn.connect('clicked', self.on_add_btn_clicked)
+        save_btn.connect('clicked', self.on_save_btn_clicked)
         btns_row.append(add_btn)
         list_widget.append(btns_row)
 
@@ -51,3 +61,12 @@ class SharedFolders(Gtk.Box):
 
     def on_save_btn_clicked(self, widget: Gtk.Button):
         self.manager.save()
+
+    def on_add_btn_clicked(self, widget: Gtk.Button):
+        top_level = Gtk.Window.get_toplevels()[0]
+        share = SambaShare.create_empty()
+
+        edit_modal = EditShareDialog(top_level, share, new_share=True)
+
+        top_level.set_modal(edit_modal)
+        edit_modal.show()

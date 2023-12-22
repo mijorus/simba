@@ -15,11 +15,8 @@ class FolderShare(Adw.PreferencesGroup):
     FEATURE_ICON_PIXEL_SIZE = 30
 
     def __init__(self, share: SambaShare):
-        print(share.writeable, share.name)
-        detail = '' if share.writeable else _('[Read only]')
-
         super().__init__(
-            title=(share.name + ' ' +detail),
+            title=share.name,
             description=share.comment,
             css_classes=["folder-share"],
         )
