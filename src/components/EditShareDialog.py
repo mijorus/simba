@@ -11,7 +11,7 @@ from gi.repository import Gtk, Adw  # noqa
 
 
 class FormRow(Gtk.Box):
-    def __init__(self, title: str, text: str, description: str = '') -> None:
+    def __init__(self, title: str, text: str, max_length=100, description: str='') -> None:
         super().__init__(
             orientation=Gtk.Orientation.VERTICAL,
             margin_bottom=10
@@ -21,8 +21,8 @@ class FormRow(Gtk.Box):
 
         self.entry = Adw.EntryRow(
             title=title,
-            selectable=False,
-            text=text
+            text=text,
+            max_length=max_length
         )
 
         desc = Gtk.Label(
@@ -64,8 +64,9 @@ class EditShareDialog():
 
         self.name_entry = FormRow(
             _('Name'), 
-            share.name, 
-            _('How share will be visible on the network')
+            share.name,
+            _('How share will be visible on the network'),
+            max_length=8
         )
 
         self.name_entry.entry.connect('changed', self.on_name_changed)

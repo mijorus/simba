@@ -12,8 +12,11 @@ from gi.repository import Gtk, Adw  # noqa
 
 
 class FolderShare(Adw.PreferencesGroup):
+    FEATURE_ICON_PIXEL_SIZE = 30
+
     def __init__(self, share: SambaShare):
-        detail = '' if not share.writeable else _('[Read only]')
+        print(share.writeable, share.name)
+        detail = '' if share.writeable else _('[Read only]')
 
         super().__init__(
             title=(share.name + ' ' +detail),
@@ -35,14 +38,22 @@ class FolderShare(Adw.PreferencesGroup):
 
         features_list = Gtk.ListBox(css_classes=['boxed-list'])
 
-        path_icon = Gtk.Image(icon_name='file-cabinet-symbolic', pixel_size=30)
-        path_row = Adw.ActionRow(
-            title=_('Path'),
-            subtitle=share.share_path
+        path_row = Adw.ActionRow(title=_('Path'), subtitle=share.share_path)
+        path_row.add_prefix(
+            Gtk.Image(icon_name='file-cabinet-symbolic', pixel_size=self.FEATURE_ICON_PIXEL_SIZE)
         )
-        path_row.add_prefix(path_icon)
 
-        [features_list.append(w) for w in [path_row]]
+        read_only_row = False
+        if not share.writeable:
+            read_only_row = Adw.ActionRow(title=_('Read only'), subtitle=_("The content of this share can't be modified"))
+            read_only_row.add_prefix(
+                Gtk.Image(icon_name='eye-symbolic', pixel_size=self.FEATURE_ICON_PIXEL_SIZE)
+            )
+
+        [features_list.append(w) if w else None for w in [
+            path_row,
+            read_only_row
+        ]]
 
         self.set_header_suffix(self.edit_button)
         self.add(features_list)

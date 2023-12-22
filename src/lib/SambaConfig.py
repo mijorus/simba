@@ -107,12 +107,16 @@ class SambaConfig():
         for section, data in self.data.items():
             if f'{section}' in self.RESERVED_SECTIONS:
                 continue
-            print(section)
+
+            writeable = data.get('writeable', True)
+            if 'read_only' in data:
+                writeable = not data['read_only']
+
             share = SambaShare(
                 name=section,
                 share_path=data.get('path', ''),
                 comment=data.get('comment', ''),
-                writeable=data.get('writeable', True),
+                writeable=writeable,
                 public=data.get('public', True)
             )
 
@@ -156,9 +160,18 @@ class SambaConfig():
         self.data = {}
 
         curr_section = None
-        for line in lines:
+        for l, line in enumerate(lines):
             line = line.strip()
             if not line or line.startswith(';') or line.startswith('#'):
+                # Any line beginning with a semicolon (“;”) or a hash (“#”) character is ignored, as are
+                # lines containing only whitespace.
+                continue
+
+            if line.endswith('\\') and len(lines) > (l + 1):
+                # Any line ending in a “\” is continued on 
+                # the next line in the customary UNIX fashion.
+                line = line[:-1]
+                lines[l + 1] = line + lines[l + 1]
                 continue
 
             if section_re.match(line):
