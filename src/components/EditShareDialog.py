@@ -1,3 +1,4 @@
+import re
 import os
 import gi
 import logging
@@ -13,13 +14,14 @@ from gi.repository import Gtk, Adw, GObject  # noqa
 class FormRow(Gtk.Box):
     def __init__(self, title: str, text: str, max_length=100, description: str='', valitator: callable=None) -> None:
         """
-            validator: The validator function should return a new string with the validated content
+            validator: The validator function should return False if the string is not valid
         """
         super().__init__(
             orientation=Gtk.Orientation.VERTICAL,
             margin_bottom=10
         )
 
+        self._is_valid = True
         self.max_length = max_length
 
         container = Gtk.ListBox(css_classes=['boxed-list'])
@@ -33,8 +35,7 @@ class FormRow(Gtk.Box):
         self.entry.get_delegate().set_max_length(max_length)
 
         self.validator = valitator
-        if self.validator:
-            self.entry.get_delegate().connect('insert-text', self.on_entry_changed)
+        self.entry.connect('changed', self.on_entry_changed)
 
         desc = Gtk.Label(
             label=description + ' (max. {max_char} characters)'.format(max_char=max_length),
@@ -47,14 +48,15 @@ class FormRow(Gtk.Box):
         self.append(container)
         self.append(desc)
 
-    def on_entry_changed(self, widget, text, *args):
-        content = widget.get_text() + text
-        validated = self.validator(content)
+    
+    def on_entry_changed(self, widget):
+        if self.validator:
+            self._is_valid = self.validator(widget.get_text())
 
-        if validated != content:
-            GObject.signal_stop_emission_by_name(widget, 'insert-text')
-            widget.set_text(validated)
-
+            if not self._is_valid:
+                widget.add_css_class('error')
+            else:
+                widget.remove_css_class('error')
 
 class FormContainer(Gtk.ListBox):
     def __init__(self) -> None:
@@ -85,8 +87,9 @@ class EditShareDialog():
         self.name_entry = FormRow(
             title=_('Name'), 
             text=share.name,
-            description=_('How share will be visible on the network'),
-            max_length=8
+            description=_('How share will be visible on the network. Only numbers, letters and dashes are allowed'),
+            max_length=8,
+            valitator=self.name_entry_validator
         )
 
         self.name_entry.entry.connect('changed', self.on_name_changed)
@@ -95,7 +98,8 @@ class EditShareDialog():
             title=_('Description'),
             text=share.comment,
             max_length=100,
-            description=_('Additional information that might be helpful to identify this share')
+            description=_('Additional information that might be helpful to identify this share'),
+            valitator=self.desc_entry_validator
         )
 
         self.path_entry = Adw.ActionRow(
@@ -128,6 +132,12 @@ class EditShareDialog():
         container.append(form)
         self.widget.set_extra_child(container)
         self.widget.set_default_size(500, 700)
+
+    def name_entry_validator(self, text: str) -> str:
+        return text == re.sub(r'[^a-zA-Z0-9\_\-]', '', text)
+
+    def desc_entry_validator(self, text: str) -> str:
+        return text == re.sub(r'[^0-9a-zA-ZÀ-ú\-\_\s]', '', text)
 
     def show(self):
         self.widget.show()
