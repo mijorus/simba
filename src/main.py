@@ -1,15 +1,20 @@
 import sys
 import gi
+import logging
+import os
 
+from .lib.constants import *
 from .utils import make_option
 from .MainWindow import MainWindow
-from .ShortcutsWindow import ShortcutsWindow
-from .lib.DbusService import DbusService, GNOME_EXTENSION_LINK
 
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 
 from gi.repository import Gtk, Gio, Gdk, Adw, GLib  # noqa
+
+
+LOG_FILE_MAX_N_LINES = 5000
+LOG_FOLDER = GLib.get_user_cache_dir() + '/logs'
 
 
 class Simba(Adw.Application):
@@ -72,11 +77,11 @@ class Simba(Adw.Application):
         self.about = Adw.AboutWindow(
             version=self.version,
             comments='An emoji picker',
-            application_name='Smile',
-            application_icon='it.mijorus.smile',
+            application_name='simba',
+            application_icon='it.mijorus.simba',
             developer_name='Lorenzo Paderi',
-            website='https://smile.mijorus.it',
-            issue_url='https://github.com/mijorus/smile',
+            website='https://simba.mijorus.it',
+            issue_url='https://github.com/mijorus/simba',
             debug_info='Type the answer to life, the universe, and everything',
             copyright='(C) 2022 Lorenzo Paderi\n\nLocalized tags by milesj/emojibase, licensed under the MIT License',
         )
@@ -85,6 +90,31 @@ class Simba(Adw.Application):
         self.about.present()
 
 def main(version: str, datadir: str) -> None:
-    app = Simba(version=version, datadir=datadir)
+    log_file = f'{LOG_FOLDER}/{APP_NAME}.log'
 
+    if not os.path.exists(LOG_FOLDER):
+         os.makedirs(LOG_FOLDER)
+
+    print('Logging to file ' + log_file)
+
+    # Clear log file if it's too big
+    log_file_size = 0
+    if os.path.exists(log_file): 
+        with open(log_file, 'r') as f:
+            log_file_size = len(f.readlines())
+        
+        if log_file_size > LOG_FILE_MAX_N_LINES:
+            with open(log_file, 'w+') as f:
+                f.write('')
+
+
+    logging.basicConfig(
+        filename=log_file,
+        filemode='a',
+        encoding='utf-8',
+        level= logging.DEBUG,
+        force=True
+    )
+
+    app = Simba(version=version, datadir=datadir)
     app.run(sys.argv)

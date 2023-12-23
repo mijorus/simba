@@ -1,48 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- available types here: https://docs.gtk.org/glib/struct.VariantType.html -->
-<schemalist gettext-domain="smile">
-    <schema id="it.mijorus.smile" path="/it/mijorus/simba/">
-        <key name="open-on-mouse-position" type="b">
-            <default>true</default>
-        </key>
-        <key name="load-hidden-on-startup" type="b">
-            <default>false</default>
-        </key>
-        <key name="iconify-on-esc" type="b">
-            <default>false</default>
-        </key>
-        <key name="is-first-run" type="b">
-            <default>true</default>
-        </key>
-        <key name="skintone-modifier" type="s">
-            <default>""</default>
-        </key>
-        <key name="haircut-modifier" type="s">
-            <default>""</default>
-        </key>
-        <key name="tags-locale" type="s">
-            <default>"en"</default>
-        </key>
-        <key name="merge-english-tags" type="b">
-            <default>true</default>
-        </key>
-        <key name="use-localized-tags" type="b">
-            <default>false</default>
-        </key>
-        <key name="last-run-version" type="s">
-            <default>""</default>
-        </key>
-        <key name="emoji-size-class" type="s">
-            <default>"emoji-button"</default>
-        </key>
-         <key name="auto-paste" type="b">
-            <default>true</default>
-        </key>
-        <key name="auto-paste-xdotool" type="b">
-            <default>true</default>
-        </key>
-        <key name="mouse-multi-select" type="b">
-            <default>false</default>
-        </key>
-    </schema>
+<schemalist gettext-domain="simba">
+	<schema id="it.mijorus.simba" path="/it/mijorus/simba/">
+	</schema>
 </schemalist>

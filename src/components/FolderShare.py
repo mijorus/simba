@@ -8,11 +8,16 @@ gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 
 
-from gi.repository import Gtk, Adw  # noqa
+from gi.repository import Gtk, Adw, GObject  # noqa
 
 
 class FolderShare(Adw.PreferencesGroup):
     FEATURE_ICON_PIXEL_SIZE = 30
+
+    __gsignals__ = {
+        "save": (GObject.SIGNAL_RUN_FIRST, GObject.TYPE_NONE, (object, )),
+        "delete": (GObject.SIGNAL_RUN_FIRST, GObject.TYPE_NONE, (object, )),
+    }
 
     def __init__(self, share: SambaShare):
         super().__init__(
@@ -23,15 +28,34 @@ class FolderShare(Adw.PreferencesGroup):
 
         self.share = share
 
-        self.edit_button = Gtk.Button(
-            css_classes=['flat'],
+        header_suffix_container = Gtk.Box(
+            orientation=Gtk.Orientation.HORIZONTAL,
+            css_classes=['linked'],
+        )
+
+        edit_button = Gtk.Button(
             child=Adw.ButtonContent(
                 icon_name='pencil-symbolic',
                 label=_('Edit')
             )
         )
 
-        self.edit_button.connect('clicked', self.on_edit_btn_clicked)
+        edit_button.connect('clicked', self.on_edit_btn_clicked)
+
+        delete_button = Gtk.Button(
+            child=Adw.ButtonContent(
+                icon_name='user-trash-symbolic',
+                css_classes=['error'],
+                label=_('Remove')
+            )
+        )
+
+        delete_button.connect('clicked', self.on_delete_btn_clicked)
+
+        [header_suffix_container.append(w) for w in [
+            edit_button,
+            delete_button
+        ]]
 
         features_list = Gtk.ListBox(css_classes=['boxed-list'])
 
@@ -52,12 +76,20 @@ class FolderShare(Adw.PreferencesGroup):
             read_only_row
         ]]
 
-        self.set_header_suffix(self.edit_button)
+        self.set_header_suffix(header_suffix_container)
         self.add(features_list)
 
     def on_edit_btn_clicked(self, widget: Gtk.Button):
         top_level = Gtk.Window.get_toplevels()[0]
         edit_modal = EditShareDialog(top_level, self.share)
 
+        edit_modal.connect('save', self.on_edit_share_save)
+
         top_level.set_modal(edit_modal)
         edit_modal.show()
+
+    def on_delete_btn_clicked(self, widget: Gtk.Button):
+        self.emit('delete', self.share)
+
+    def on_edit_share_save(self, share: SambaShare):
+        self.emit('save', share)

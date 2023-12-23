@@ -26,13 +26,15 @@ class MainWindow(Gtk.ApplicationWindow):
 
         header_bar = Adw.HeaderBar(title_widget=Gtk.Label.new(window_title))
         save_btn = Gtk.Button(
-            sensitive=False,
+            # sensitive=False,
             css_classes=['raised'],
             child=Adw.ButtonContent(
                 icon_name='checkmark-symbolic',
                 label=_('Apply')
             )
         )
+
+        save_btn.connect('clicked', self.on_save_btn_clicked)
 
         header_bar.pack_end(save_btn)
         self.set_titlebar(header_bar)
@@ -54,6 +56,6 @@ class MainWindow(Gtk.ApplicationWindow):
         self.set_child(navigation_splitview)
 
 
-
-
+    def on_save_btn_clicked(self, widget):
+        self.config_manager.save()
     

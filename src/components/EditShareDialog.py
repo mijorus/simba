@@ -113,7 +113,7 @@ class EditShareDialog(GObject.GObject):
             subtitle=share.share_path
         )
 
-        select_path_btn = Gtk.Button(icon_name='file-manager-symbolic', valign=Gtk.Align.CENTER)
+        select_path_btn = Gtk.Button(icon_name='folder-symbolic', valign=Gtk.Align.CENTER)
         select_path_btn.connect('clicked', self.on_select_path_btn_clicked)
         self.path_entry.add_suffix(select_path_btn)
         
@@ -179,9 +179,24 @@ class EditShareDialog(GObject.GObject):
             return
         
         self.path_entry.set_subtitle(selected_path)
-        
+        self.share.share_path = selected_path
+
     def on_dialog_response(self, widget, response: str):
         if response == 'save':
+            for entry in [self.name_entry, self.desc_entry]:
+                if not entry._is_valid:
+                    return
+                
+            validate_not_empty = [
+                self.name_entry.entry.get_text(), 
+                self.desc_entry.entry.get_text(), 
+                self.path_entry.get_subtitle()
+            ]
+            
+            for entry in validate_not_empty:
+                if not entry:
+                    return
+
             self.share.name = self.name_entry.entry.get_text()
             self.share.comment = self.desc_entry.entry.get_text()
             self.share.writeable = self.readonly_switch.get_active()

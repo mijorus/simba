@@ -56,7 +56,7 @@ class SambaConfig():
     def save(self):
         content = []
         for section, data in self.data.items():
-            content.append(section)
+            content.append(f'[{section}]')
 
             for key, value in data.items():
                 content.append(self._unparse_key(key) + ' = ' + self._unparse_value(value))
@@ -73,8 +73,7 @@ class SambaConfig():
         terminal.host_sh(['testparm', '--suppress-prompt', testfile_path])
 
         terminal.host_sh([
-            'pkexec', 'cp', testfile_path, self.config_file_location, '&&',
-            'systemctl', '--quiet', 'reload', 'smbd'
+            'pkexec', 'bash', '-c', f'sudo cp {testfile_path} {self.config_file_location} && sudo smbcontrol all reload-config',
         ])
 
         if os.path.exists(testfile_path):
@@ -95,19 +94,25 @@ class SambaConfig():
         return filehash
 
     def get_section(self, section: str) -> dict:
-        return self.data.get(f'[{section}]', None)
+        return self.data.get(f'{section}', None)
     
     def create_section(self, section: str, data: dict):
-        self.data[f'[{section}]'] = data
+        self.data[f'{section}'] = data
 
     def check_valid_share_name(self, name: str) -> tuple:
-        if name not in self.RESERVED_SECTIONS:
+        if name in self.RESERVED_SECTIONS:
             return (False, 'name reserved')
         
         if len(name) > 8:
             return (False, 'name is too long')
         
         return (True, '')
+
+    def delete_share(self, share: SambaShare):
+        if share.name not in self.data.keys():
+            raise Exception(f'{share.name} does not exists! Available shares are: {self.data.keys()}')
+        
+        del self.data[share.name]
 
     def create_share(self, share: SambaShare):
         name_check, name_check_error = self.check_valid_share_name(share.name)
@@ -159,6 +164,10 @@ class SambaConfig():
     def _unparse_value(self, value) -> str:
         if type(value) == bool:
             value = 'yes' if value else 'no'
+
+        forbidden_chars = '\\[]='
+        for f in forbidden_chars:
+            value = value.replace(f, '')
 
         value = str(value)
         return value

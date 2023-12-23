@@ -1,9 +1,8 @@
 [Desktop Entry]
-Name=Smile
-Exec=smile
-Icon=it.mijorus.smile
+Name=simba
+Exec=simba
+Icon=it.mijorus.simba
 Terminal=false
 Type=Application
-Categories=Utility;GTK;
+Categories=Utility;
 StartupNotify=true
-Keywords=Emoji;Picker;

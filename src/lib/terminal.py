@@ -13,6 +13,7 @@ def host_sh(command: List[str], return_stderr=False, **kwargs) -> str:
         output = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, **kwargs)
         output.check_returncode()
     except subprocess.CalledProcessError as e:
+        print(e.stderr)
         if return_stderr:
             return e.stderr.decode()
 

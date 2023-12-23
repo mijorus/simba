@@ -10,8 +10,9 @@
         "--socket=fallback-x11",
         "--device=dri",
         "--filesystem=host",
-        "--talk-name=org.gnome.Shell.Extensions",
-        "--talk-name=org.freedesktop.Flatpak"
+        "--talk-name=org.freedesktop.Flatpak",
+        "--talk-name=org.freedesktop.portal.OpenURI",
+        "--talk-name=org.freedesktop.portal.OpenFile"
     ],
     "cleanup": [
         "/include",

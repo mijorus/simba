@@ -26,9 +26,10 @@ class SharedFolders(Gtk.Box):
             orientation=Gtk.Orientation.VERTICAL
         )
 
-        self.list_widget = Gtk.Box(
-            spacing=45,
-            orientation=Gtk.Orientation.VERTICAL
+        self.list_widget = Gtk.FlowBox(
+            max_children_per_line=1,
+            selection_mode=Gtk.SelectionMode.NONE,
+            row_spacing=20,
         )
 
         btns_row = Gtk.Box(
@@ -71,14 +72,25 @@ class SharedFolders(Gtk.Box):
     def reload_shares(self):
         shares = self.manager.list_shares()
 
+        self.list_widget.remove_all()
+
         for share in shares:
-            self.list_widget.prepend(FolderShare(share))
+            folder_share = FolderShare(share)
+            self.list_widget.prepend(folder_share)
+
+            folder_share.connect('save', lambda _: self.reload_shares())
+            folder_share.connect('delete', self.on_share_deleted)
 
     def on_save_btn_clicked(self, widget: Gtk.Button):
         self.manager.save()
 
+    def on_share_deleted(self, obj, share: SambaShare):
+        self.manager.delete_share(share)
+
     def on_add_share_save(self, obj, share: SambaShare):
         self.manager.create_share(share)
+
+        self.reload_shares()
 
     def on_add_btn_clicked(self, widget: Gtk.Button):
         top_level = Gtk.Window.get_toplevels()[0]
