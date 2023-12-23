@@ -66,8 +66,14 @@ class FormContainer(Gtk.ListBox):
             margin_bottom=10
         )
 
-class EditShareDialog():
+class EditShareDialog(GObject.GObject):
+    __gsignals__ = {
+        "save": (GObject.SIGNAL_RUN_FIRST, GObject.TYPE_NONE, (object, )),
+    }
+
     def __init__(self, parent, share: SambaShare, new_share=False):
+        super().__init__()
+
         self.share = share
         self.widget = Adw.MessageDialog.new(parent)
         self.widget.set_heading(_('Create share') if new_share else _('Edit share'))
@@ -174,8 +180,12 @@ class EditShareDialog():
         
         self.path_entry.set_subtitle(selected_path)
         
-    def on_dialog_response(self, respose: str, data):
-        if respose == 'save':
-            self.share.name = self.name_entry.get_text()
-            self.share.comment = self.desc_entry.get_text()
+    def on_dialog_response(self, widget, response: str):
+        if response == 'save':
+            self.share.name = self.name_entry.entry.get_text()
+            self.share.comment = self.desc_entry.entry.get_text()
             self.share.writeable = self.readonly_switch.get_active()
+
+            self.emit('save', self.share)
+
+GObject.type_register(EditShareDialog)

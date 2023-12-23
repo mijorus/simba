@@ -25,12 +25,20 @@ class MainWindow(Gtk.ApplicationWindow):
         self.set_default_size(1000, 700)
 
         header_bar = Adw.HeaderBar(title_widget=Gtk.Label.new(window_title))
+        save_btn = Gtk.Button(
+            sensitive=False,
+            css_classes=['raised'],
+            child=Adw.ButtonContent(
+                icon_name='checkmark-symbolic',
+                label=_('Apply')
+            )
+        )
+
+        header_bar.pack_end(save_btn)
         self.set_titlebar(header_bar)
 
-        samba_shares = self.config_manager.list_shares()
-
         view_stack = Gtk.Stack(margin_top=30)
-        view_stack.add_titled(SharedFolders(samba_shares, self.config_manager), 'shared_folders', _('Shared folders'))
+        view_stack.add_titled(SharedFolders(self.config_manager), 'shared_folders', _('Shared folders'))
         view_stack.add_titled(Gtk.Label.new('printers'), 'printers', _('Printers and devices'))
         view_stack.add_titled(Gtk.Label.new('settings'), 'settings', _('Preferences'))
 

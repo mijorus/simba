@@ -13,21 +13,28 @@ from gi.repository import Gtk, Adw  # noqa
 
 
 class SharedFolders(Gtk.Box):
-    def __init__(self, shares: list[SambaShare], manager=SambaConfig):
+    def __init__(self, manager=SambaConfig):
         super().__init__()
 
         self.manager = manager
 
         viewport = Gtk.Viewport.new()
         clamp = Adw.Clamp.new()
-        list_widget = Gtk.Box(
+
+        container = Gtk.Box(
+            spacing=30,
+            orientation=Gtk.Orientation.VERTICAL
+        )
+
+        self.list_widget = Gtk.Box(
             spacing=45,
             orientation=Gtk.Orientation.VERTICAL
         )
 
         btns_row = Gtk.Box(
+            css_classes=['folder-share'],
             orientation=Gtk.Orientation.HORIZONTAL,
-            halign=Gtk.Align.END
+            hexpand=True,
         )
 
         add_btn = Gtk.Button(
@@ -38,35 +45,47 @@ class SharedFolders(Gtk.Box):
             )
         )
 
-        save_btn = Gtk.Button(
-            css_classes=['suggested-action'],
-            child=Adw.ButtonContent(
-                icon_name='save-symbolic',
-                label=_('Save')
-            )
+        btns_row_container = Gtk.Box(
+            orientation=Gtk.Orientation.HORIZONTAL,
+            halign=Gtk.Align.END,
+            spacing=10,
+            hexpand=True,
         )
 
         add_btn.connect('clicked', self.on_add_btn_clicked)
-        save_btn.connect('clicked', self.on_save_btn_clicked)
-        btns_row.append(add_btn)
-        list_widget.append(btns_row)
+        [btns_row_container.append(w) for w in [
+            add_btn,
+        ]]
+        
+        btns_row.append(btns_row_container)
+        container.append(btns_row)
+        container.append(self.list_widget)
 
-        for share in shares:
-            list_widget.append(FolderShare(share))
+        self.reload_shares()
 
-        clamp.set_child(list_widget)
+        clamp.set_child(container)
         viewport.set_child(clamp)
 
         self.append(viewport)
 
+    def reload_shares(self):
+        shares = self.manager.list_shares()
+
+        for share in shares:
+            self.list_widget.prepend(FolderShare(share))
+
     def on_save_btn_clicked(self, widget: Gtk.Button):
         self.manager.save()
+
+    def on_add_share_save(self, obj, share: SambaShare):
+        self.manager.create_share(share)
 
     def on_add_btn_clicked(self, widget: Gtk.Button):
         top_level = Gtk.Window.get_toplevels()[0]
         share = SambaShare.create_empty()
 
         edit_modal = EditShareDialog(top_level, share, new_share=True)
+        edit_modal.connect('save', self.on_add_share_save)
 
         top_level.set_modal(edit_modal)
         edit_modal.show()
