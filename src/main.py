@@ -19,15 +19,8 @@ LOG_FOLDER = GLib.get_user_cache_dir() + '/logs'
 
 class Simba(Adw.Application):
     def __init__(self, **kwargs) -> None:
-        self.application_id = "it.mijorus.simba"
+        self.application_id = APP_ID
         super().__init__(application_id=self.application_id, flags=Gio.ApplicationFlags.FLAGS_NONE)
-
-        entries = [
-            make_option('start-hidden'),
-            make_option('version')
-        ]
-
-        self.add_main_option_entries(entries)
 
         self.datadir = kwargs['datadir']
         self.version = kwargs['version']

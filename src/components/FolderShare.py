@@ -29,6 +29,7 @@ class FolderShare(Adw.PreferencesGroup):
         self.share = share
 
         header_suffix_container = Gtk.Box(
+            valign=Gtk.Align.CENTER,
             orientation=Gtk.Orientation.HORIZONTAL,
             css_classes=['linked'],
         )

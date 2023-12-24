@@ -12,7 +12,7 @@ from gi.repository import Gtk, Adw, GObject  # noqa
 
 
 class FormRow(Gtk.Box):
-    def __init__(self, title: str, text: str, max_length=100, description: str='', valitator: callable=None) -> None:
+    def __init__(self, name: str, title: str, text: str, max_length=100, description: str='', valitator: callable=None) -> None:
         """
             validator: The validator function should return False if the string is not valid
         """
@@ -23,6 +23,7 @@ class FormRow(Gtk.Box):
 
         self._is_valid = True
         self.max_length = max_length
+        self.name = name
 
         container = Gtk.ListBox(css_classes=['boxed-list'])
 
@@ -51,7 +52,7 @@ class FormRow(Gtk.Box):
     
     def on_entry_changed(self, widget):
         if self.validator:
-            self._is_valid = self.validator(widget.get_text())
+            self._is_valid = self.validator(self.name, widget.get_text())
 
             if not self._is_valid:
                 widget.add_css_class('error')
@@ -78,6 +79,7 @@ class EditShareDialog(GObject.GObject):
         self.widget = Adw.MessageDialog.new(parent)
         self.widget.set_heading(_('Create share') if new_share else _('Edit share'))
         self.widget.set_resizable(True)
+        self.valid_form = False
 
         self.widget.add_response("cancel",  _("_Cancel"))
         self.widget.add_response( "save",    _("_Save"))
@@ -91,21 +93,23 @@ class EditShareDialog(GObject.GObject):
         form = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
 
         self.name_entry = FormRow(
+            name='name',
             title=_('Name'), 
             text=share.name,
             description=_('How share will be visible on the network. Only numbers, letters and dashes are allowed'),
             max_length=8,
-            valitator=self.name_entry_validator
+            valitator=self.form_validator
         )
 
         self.name_entry.entry.connect('changed', self.on_name_changed)
 
         self.desc_entry = FormRow(
+            name='description',
             title=_('Description'),
             text=share.comment,
             max_length=100,
             description=_('Additional information that might be helpful to identify this share'),
-            valitator=self.desc_entry_validator
+            valitator=self.form_validator
         )
 
         self.path_entry = Adw.ActionRow(
@@ -139,11 +143,42 @@ class EditShareDialog(GObject.GObject):
         self.widget.set_extra_child(container)
         self.widget.set_default_size(500, 700)
 
-    def name_entry_validator(self, text: str) -> str:
-        return text == re.sub(r'[^a-zA-Z0-9\_\-]', '', text)
+    def name_entry_validator(self, text: str) -> bool:
+        is_valid = text == re.sub(r'[^a-zA-Z0-9\_\-]', '', text)
 
-    def desc_entry_validator(self, text: str) -> str:
-        return text == re.sub(r'[^0-9a-zA-ZÀ-ú\-\_\s]', '', text)
+    def desc_entry_validator(self, text: str) -> bool:
+        is_valid = text == re.sub(r'[^0-9a-zA-ZÀ-ú\-\_\s]', '', text)
+
+    def form_validator(self, entry_name: str, text: str) -> bool:
+        is_valid = False
+
+        if entry_name == 'name':
+            is_valid = text == re.sub(r'[^a-zA-Z0-9\_\-]', '', text)
+        elif entry_name == 'description':
+            is_valid = text == re.sub(r'[^0-9a-zA-ZÀ-ú\-\_\s]', '', text)
+
+
+        if is_valid:
+            self.valid_form = True
+
+            validate_not_empty = [
+                self.name_entry.entry.get_text(), 
+                self.path_entry.get_subtitle()
+            ]
+            
+            for entry in validate_not_empty:
+                if not entry:
+                    self.valid_form = False
+        else:
+            self.valid_form = False
+
+        if not self.valid_form:
+            pass
+            #TODO
+
+        return is_valid
+
+        
 
     def show(self):
         self.widget.show()
@@ -189,7 +224,6 @@ class EditShareDialog(GObject.GObject):
                 
             validate_not_empty = [
                 self.name_entry.entry.get_text(), 
-                self.desc_entry.entry.get_text(), 
                 self.path_entry.get_subtitle()
             ]
             
