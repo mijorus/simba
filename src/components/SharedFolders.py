@@ -94,7 +94,7 @@ class SharedFolders(Gtk.Box):
             self.list_widget.prepend(folder_share)
             self.folder_shares.insert(0, folder_share)
 
-            folder_share.connect('save', lambda _: self.reload_shares())
+            folder_share.connect('save', lambda *args: self.reload_shares())
             folder_share.connect('delete', self.on_share_deleted)
 
     def on_save_btn_clicked(self, widget: Gtk.Button):

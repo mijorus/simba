@@ -92,5 +92,5 @@ class FolderShare(Adw.PreferencesGroup):
     def on_delete_btn_clicked(self, widget: Gtk.Button):
         self.emit('delete', self.share)
 
-    def on_edit_share_save(self, share: SambaShare):
+    def on_edit_share_save(self, widget, share: SambaShare):
         self.emit('save', share)
