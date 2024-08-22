@@ -103,8 +103,10 @@ class SharedFolders(Gtk.Box):
     def on_share_deleted(self, obj, share: SambaShare):
         self.manager.delete_share(share)
 
-        for folder_share in self.list_widget:
-            if folder_share.
+        for folder_share in self.folder_shares:
+            if folder_share.share.name == share.name:
+                self.list_widget.remove(folder_share)
+                break
 
     def on_add_share_save(self, obj, share: SambaShare):
         self.manager.create_share(share)
