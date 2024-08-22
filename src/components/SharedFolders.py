@@ -9,14 +9,19 @@ gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 
 
-from gi.repository import Gtk, Adw  # noqa
+from gi.repository import Gtk, Adw, GObject  # noqa
 
 
 class SharedFolders(Gtk.Box):
+    __gsignals__ = {
+        "save": (GObject.SIGNAL_RUN_FIRST, GObject.TYPE_NONE, (object, )),
+    }
+
     def __init__(self, manager=SambaConfig):
         super().__init__()
 
         self.manager = manager
+        self.folder_shares: list[FolderShare] = []
 
         viewport = Gtk.Viewport.new()
         clamp = Adw.Clamp.new()
@@ -41,8 +46,16 @@ class SharedFolders(Gtk.Box):
         add_btn = Gtk.Button(
             css_classes=['flat'],
             child=Adw.ButtonContent(
-                icon_name='plus-symbolic',
+                icon_name='sb-plus',
                 label=_('Add')
+            )
+        )
+        
+        save_btn = Gtk.Button(
+            css_classes=['suggested-action'],
+            child=Adw.ButtonContent(
+                icon_name='sb-checkmark',
+                label=_('Save')
             )
         )
 
@@ -54,8 +67,10 @@ class SharedFolders(Gtk.Box):
         )
 
         add_btn.connect('clicked', self.on_add_btn_clicked)
+        save_btn.connect('clicked', lambda w: self.emit('save', w))
         [btns_row_container.append(w) for w in [
             add_btn,
+            save_btn
         ]]
         
         btns_row.append(btns_row_container)
@@ -77,6 +92,7 @@ class SharedFolders(Gtk.Box):
         for share in shares:
             folder_share = FolderShare(share)
             self.list_widget.prepend(folder_share)
+            self.folder_shares.insert(0, folder_share)
 
             folder_share.connect('save', lambda _: self.reload_shares())
             folder_share.connect('delete', self.on_share_deleted)
@@ -87,9 +103,11 @@ class SharedFolders(Gtk.Box):
     def on_share_deleted(self, obj, share: SambaShare):
         self.manager.delete_share(share)
 
+        for folder_share in self.list_widget:
+            if folder_share.
+
     def on_add_share_save(self, obj, share: SambaShare):
         self.manager.create_share(share)
-        print('qwe')
         self.reload_shares()
 
     def on_add_btn_clicked(self, widget: Gtk.Button):
