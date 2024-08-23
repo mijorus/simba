@@ -5,11 +5,15 @@ import threading
 from typing import Callable, List, Union, Optional
 import logging
 
-def host_sh(command: List[str], return_stderr=False, **kwargs) -> str:
+def host_sh(command: List[str], return_stderr=False, hide_log=False, **kwargs) -> str:
     try:
         cmd = ['flatpak-spawn', '--host', *command]
         
-        print(f'Running {command}')
+        if hide_log:
+            print(f'Running ***')
+        else:
+            print(f'Running {command}')
+
         output = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, **kwargs)
         output.check_returncode()
     except subprocess.CalledProcessError as e:
@@ -21,11 +25,15 @@ def host_sh(command: List[str], return_stderr=False, **kwargs) -> str:
 
     return re.sub(r'\n$', '', output.stdout.decode() + (output.stderr.decode() if return_stderr else ''))
 
-def sandbox_sh(command: List[str], return_stderr=False, **kwargs) -> str:
+def sandbox_sh(command: List[str], return_stderr=False, hide_log=False, **kwargs) -> str:
     try:
         cmd = [*command]
-        
-        print(f'Running {command}')
+
+        if hide_log:
+            print(f'Running ***')
+        else:
+            print(f'Running {command}')
+
         output = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, **kwargs)
         output.check_returncode()
     except subprocess.CalledProcessError as e:
