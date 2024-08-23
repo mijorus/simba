@@ -8,6 +8,7 @@
 import re
 import hashlib
 import os
+from shlex import quote
 from dataclasses import dataclass
 import gi
 
@@ -66,14 +67,14 @@ class SambaConfig():
         text_content = '\n'.join(content)
 
         # check file validity
-        testfile_path = f'{self.tmp_config_file_location}/simba_smb_validate.conf'
+        testfile_path = f'{self.tmp_config_file_location}/simba_tmp_smb.conf'
         with open(testfile_path, 'w+') as f:
             f.write(text_content)
 
         terminal.host_sh(['testparm', '--suppress-prompt', testfile_path])
 
         terminal.host_sh([
-            'pkexec', 'bash', '-c', f'sudo cp {testfile_path} {self.config_file_location} && sudo smbcontrol all reload-config',
+            'pkexec', 'sh', '-c', f'sudo cp {testfile_path} {self.config_file_location} && sudo smbcontrol all reload-config',
         ])
 
         if os.path.exists(testfile_path):
@@ -152,6 +153,13 @@ class SambaConfig():
             shares.append(share)
 
         return shares
+
+    def create_user(self, user, passwd):
+        passwd_confirm = quote(f'{passwd}\\n{passwd}\\n')
+        user = quote(user)
+
+        command = f'echo -ne "{passwd_confirm}" | smbpasswd -L -s -a {user}'
+        terminal.host_sh(['pkexec', 'sh', '-c', command], hide_log=True)
 
     def _parse_key(self, key):
         key = key.strip().replace(' ', '_')
