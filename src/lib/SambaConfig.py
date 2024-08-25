@@ -30,7 +30,7 @@ class SambaShare:
             share_path='',
             comment='',
             writeable=True,
-            public=True
+            public=True,
         )
 
 class SambaConfig():
@@ -58,8 +58,16 @@ class SambaConfig():
         content = []
         for section, data in self.data.items():
             content.append(f'[{section}]')
+            line_comments = data.get('line_comments', {})
+            
+            if 'line_comments' in data:
+                del data['line_comments']
 
             for key, value in data.items():
+                if key in line_comments:
+                    for l in line_comments[key]:
+                        content.append(f'# {l}')
+
                 content.append(self._unparse_key(key) + ' = ' + self._unparse_value(value))
 
             content.append('\n')
@@ -67,14 +75,14 @@ class SambaConfig():
         text_content = '\n'.join(content)
 
         # check file validity
-        testfile_path = f'{self.tmp_config_file_location}/simba_tmp_smb.conf'
+        testfile_path = f'{self.tmp_config_file_location}/tmp_smb.conf'
         with open(testfile_path, 'w+') as f:
             f.write(text_content)
 
         terminal.host_sh(['testparm', '--suppress-prompt', testfile_path])
 
         terminal.host_sh([
-            'pkexec', 'sh', '-c', f'sudo cp {testfile_path} {self.config_file_location} && sudo smbcontrol all reload-config',
+            'pkexec', 'sh', '-c', f'cp {testfile_path} {self.config_file_location} && smbcontrol all reload-config',
         ])
 
         if os.path.exists(testfile_path):
@@ -126,10 +134,6 @@ class SambaConfig():
             'public': share.public,
             'browseable': True,
             'comment': share.comment,
-            # we manually enforce 0644, default value would be 0755
-            'create_mask': '0644', 
-            # we are just expliciting the permission here, as 0755 is already the default for new directories
-            'directory_mask': '0755',  
         })
 
     def list_shares(self) -> list[SambaShare]:

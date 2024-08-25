@@ -1,7 +1,7 @@
 {
-    "app-id": "it.mijorus.simba",
+    "id": "it.mijorus.simba",
     "runtime": "org.gnome.Platform",
-    "runtime-version": "45",
+    "runtime-version": "46",
     "sdk": "org.gnome.Sdk",
     "command": "simba",
     "finish-args": [
