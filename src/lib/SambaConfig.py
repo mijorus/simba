@@ -48,7 +48,19 @@ class SambaConfig():
         if override_config_file_location:
             self.config_file_location = override_config_file_location
         
-        self.data = {}
+        self.data = {
+            'global': {
+                'workgroup': 'WORKGROUP',
+                'log file': '/var/log/samba/log.%m',
+                'max log size': '1000',
+                'logging': 'file',
+                'server role': 'standalone server',
+                'map to guest': 'bad user',
+                'pam password change': False,
+                'obey pam restrictions': True,
+            }
+        }
+
         self.original_raw_data = {}
 
         if os.path.exists(self.config_file_location):
@@ -81,16 +93,15 @@ class SambaConfig():
 
         terminal.host_sh(['testparm', '--suppress-prompt', testfile_path])
 
+        # backup old file
+        # request sudo permission
         terminal.host_sh([
-            'pkexec', 'sh', '-c', f'cp {testfile_path} {self.config_file_location} && smbcontrol all reload-config',
+            'pkexec', 'bash', '-c', f'cp {testfile_path} {self.config_file_location} && smbcontrol all reload-config',
         ])
 
         if os.path.exists(testfile_path):
             os.remove(testfile_path)
 
-        # backup old file
-        
-        # request su permission
 
     def get_md5(self):
         filehash = ''
@@ -163,7 +174,7 @@ class SambaConfig():
         user = quote(user)
 
         command = f'echo -ne "{passwd_confirm}" | smbpasswd -L -s -a {user}'
-        terminal.host_sh(['pkexec', 'sh', '-c', command], hide_log=True)
+        terminal.host_sh(['pkexec', 'bash', '-c', command], hide_log=True)
 
     def _parse_key(self, key):
         key = key.strip().replace(' ', '_')
