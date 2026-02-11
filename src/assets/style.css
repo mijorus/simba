@@ -1,0 +1,8 @@
+.folder-share {
+    border-bottom: 1px solid @borders;
+    padding-bottom: 20px;
+}
+
+.messagedialog.dim-heading-dialog label.title-2 {
+    opacity: 0.5;
+}

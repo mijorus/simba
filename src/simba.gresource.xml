@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gresources>
+    <gresource prefix="/it/mijorus/simba">
+        <file>ui/shortcuts.ui</file>
+        <file>ui/menu.ui</file>
+        <file>assets/style.css</file>
+    </gresource>
+</gresources>

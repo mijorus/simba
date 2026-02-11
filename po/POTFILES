@@ -1,0 +1,6 @@
+data/it.mijorus.simba.desktop.in
+data/it.mijorus.simba.metainfo.xml.in
+data/it.mijorus.simba.gschema.xml
+src/main.py
+src/window.py
+src/window.ui
