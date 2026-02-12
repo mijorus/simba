@@ -17,7 +17,7 @@ class SharedFolders(Gtk.Box):
         "save": (GObject.SIGNAL_RUN_FIRST, GObject.TYPE_NONE, (object, )),
     }
 
-    def __init__(self, manager=SambaConfig):
+    def __init__(self, manager: SambaConfig):
         super().__init__()
 
         self.manager = manager
@@ -77,14 +77,15 @@ class SharedFolders(Gtk.Box):
         container.append(btns_row)
         container.append(self.list_widget)
 
-        self.reload_shares()
-
         clamp.set_child(container)
         viewport.set_child(clamp)
 
         self.append(viewport)
 
     def reload_shares(self):
+        if not self.manager.is_config_supported():
+            return
+
         shares = self.manager.list_shares()
 
         self.list_widget.remove_all()

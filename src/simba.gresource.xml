@@ -3,6 +3,7 @@
     <gresource prefix="/it/mijorus/simba">
         <file>ui/shortcuts.ui</file>
         <file>ui/menu.ui</file>
+        <file>ui/unsupported_config.ui</file>
         <file>assets/style.css</file>
     </gresource>
 </gresources>

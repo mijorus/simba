@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.0"/>
+    <object class="GtkBox">
+        <property name="orientation">1</property>
+        <child>
+          <object class="AdwStatusPage">
+            <property name="title" translatable="yes">Banner</property>
+            <property name="description" translatable="yes">A bar with contextual information</property>
+            <property name="vexpand">true</property>
+            <child>
+              <object class="GtkBox">
+                <property name="orientation">1</property>
+                <property name="halign">3</property>
+                <child>
+                  <object class="GtkButton" id="button_show_banner">
+                    <property name="halign">3</property>
+                    <property name="label" translatable="yes">Show Banner</property>
+                    <style>
+                      <class name="pill"/>
+                    </style>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+</interface>
