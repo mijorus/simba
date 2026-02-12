@@ -3,6 +3,7 @@ import gi
 
 from .lib.SambaConfig import SambaConfig
 from .components.SharedFolders import SharedFolders
+from .components.UnsupportedConfig import UnsupportedConfig
 
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
@@ -30,10 +31,7 @@ class MainWindow(Adw.Window):
         if samba_is_compatible:
             self.config_manager = SambaConfig()
 
-            unsuppoted_config = Gtk.Box()
-            unsuppoted_config.append(
-                Gtk.Label.new('Unsupported config')
-            )
+            unsuppoted_config = UnsupportedConfig()
 
             shared_folders_widget = SharedFolders(self.config_manager)
             shared_folders_widget.connect('save', self.on_save_btn_clicked)
@@ -43,16 +41,17 @@ class MainWindow(Adw.Window):
             view_stack.add_titled_with_icon(shared_folders_widget, 'shared_folders', _('Shared folders'), 'pencil')
             view_stack.add_titled_with_icon(Gtk.Label.new('printers'), 'printers', _('Printers and devices'), 'pencil')
             view_stack.add_titled_with_icon(Gtk.Label.new('settings'), 'settings', _('Preferences'), 'pencil')
+            view_switcher = Adw.ViewSwitcher(
+                stack=view_stack,
+                policy=Adw.ViewSwitcherPolicy.WIDE 
+            )
 
             if self.config_manager.is_config_supported():
                 view_stack.set_visible_child(shared_folders_widget)
             else:
                 view_stack.set_visible_child(unsuppoted_config)
+                view_switcher.set_sensitive(False)
 
-            view_switcher = Adw.ViewSwitcher(
-                stack=view_stack,
-                policy=Adw.ViewSwitcherPolicy.WIDE 
-            )
 
             header_bar.set_title_widget(view_switcher)
 
