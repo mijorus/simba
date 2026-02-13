@@ -21,13 +21,13 @@ class ShellScript():
 
     def host_execute(self):
         if self.path:
-            terminal.host_sh(['bash', '-c', self.path])
+            terminal.host_sh(['bash', '-c', f'chmod +x {shlex.quote(self.path)} && bash {shlex.quote(self.path)}'])
         else:
             raise Exception('File has been removed')
 
     def root_host_execute(self):
         if self.path:
-            terminal.host_sh(['pkexec', 'bash', '-c', self.path])
+            terminal.host_sh(['pkexec', 'bash', '-c', f'chmod +x {shlex.quote(self.path)} && bash {shlex.quote(self.path)}'])
         else:
             raise Exception('File has been removed')
 

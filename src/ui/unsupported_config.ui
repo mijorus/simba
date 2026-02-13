@@ -12,7 +12,8 @@
                         <property name="orientation">1</property>
                         <property name="halign">3</property>
                         <child>
-                            <object class="GtkButton" id="button_show_banner">
+                            <object class="GtkButton" id="fix_button">
+                                <signal name="clicked" handler="fix_button_clicked" swapped="no" />
                                 <property name="halign">3</property>
                                 <property name="label" translatable="yes">Fix</property>
                                 <style>

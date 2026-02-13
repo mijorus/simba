@@ -25,45 +25,45 @@ class MainWindow(Adw.Window):
         # Application logic
         self.config_manager = None
         samba_is_compatible = SambaConfig.test_compatibility()
+        self.view_stack = None
+        self.view_switcher = None
+        self.shared_folders_widget = None
+        self.unsuppoted_config = UnsupportedConfig()
 
         header_bar = Adw.HeaderBar(title_widget=Gtk.Label.new(window_title))
 
         if samba_is_compatible:
             self.config_manager = SambaConfig()
 
-            unsuppoted_config = UnsupportedConfig()
 
-            shared_folders_widget = SharedFolders(self.config_manager)
-            shared_folders_widget.connect('save', self.on_save_btn_clicked)
+            self.shared_folders_widget = SharedFolders(self.config_manager)
+            self.shared_folders_widget.connect('save', self.on_save_btn_clicked)
 
-            view_stack = Adw.ViewStack(margin_top=30)
-            view_stack.add(unsuppoted_config)
-            view_stack.add_titled_with_icon(shared_folders_widget, 'shared_folders', _('Shared folders'), 'pencil')
-            view_stack.add_titled_with_icon(Gtk.Label.new('printers'), 'printers', _('Printers and devices'), 'pencil')
-            view_stack.add_titled_with_icon(Gtk.Label.new('settings'), 'settings', _('Preferences'), 'pencil')
-            view_switcher = Adw.ViewSwitcher(
-                stack=view_stack,
+            self.view_stack = Adw.ViewStack(margin_top=30)
+            self.view_stack.add(self.unsuppoted_config)
+            self.view_stack.add_titled_with_icon(self.shared_folders_widget, 'shared_folders', _('Shared folders'), 'pencil')
+            self.view_stack.add_titled_with_icon(Gtk.Label.new('printers'), 'printers', _('Printers and devices'), 'pencil')
+            self.view_stack.add_titled_with_icon(Gtk.Label.new('settings'), 'settings', _('Preferences'), 'pencil')
+            self.view_switcher = Adw.ViewSwitcher(
+                stack=self.view_stack,
                 policy=Adw.ViewSwitcherPolicy.WIDE 
             )
 
             if self.config_manager.is_config_supported():
-                view_stack.set_visible_child(shared_folders_widget)
+                self.view_stack.set_visible_child(self.shared_folders_widget)
             else:
-                view_stack.set_visible_child(unsuppoted_config)
-                view_switcher.set_sensitive(False)
+                self.view_stack.set_visible_child(self.unsuppoted_config)
+                self.view_switcher.set_sensitive(False)
+                self.unsuppoted_config.connect('fix_button_clicked', self.on_fix_btn_clicked)
 
 
-            header_bar.set_title_widget(view_switcher)
+            header_bar.set_title_widget(self.view_switcher)
 
             toolbar_view = Adw.ToolbarView(
-                content=view_stack
+                content=self.view_stack
             )
 
             toolbar_view.add_top_bar(header_bar)
-
-            self.smbconf_filehash = self.config_manager.get_md5()
-            print('hash:' + self.smbconf_filehash)
-
             self.set_content(toolbar_view)
         else:
             toolbar_view = Adw.ToolbarView(
@@ -76,5 +76,21 @@ class MainWindow(Adw.Window):
 
 
     def on_save_btn_clicked(self, *args):
-        self.config_manager.save()
+        if self.config_manager:
+            self.config_manager.save()
+
+    def refresh_valid_config(self):
+        if self.config_manager and self.view_stack and self.view_switcher:
+            if self.config_manager.is_config_supported():
+                self.view_stack.set_visible_child(self.shared_folders_widget)
+                self.view_switcher.set_sensitive(True)
+            else:
+                self.view_switcher.set_sensitive(False)
+                self.view_stack.set_visible_child(self.unsuppoted_config)
+
     
+    def on_fix_btn_clicked(self, *args):
+        if self.config_manager:
+            self.config_manager.init_with_defaults()
+            self.config_manager.save()
+            self.refresh_valid_config()

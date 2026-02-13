@@ -10,14 +10,14 @@ def host_sh(command: List[str], return_stderr=False, hide_log=False, **kwargs) -
         cmd = ['flatpak-spawn', '--host', *command]
         
         if hide_log:
-            print(f'Running ***')
+            logging.info(f'Running ***')
         else:
-            print(f'Running {command}')
+            logging.info(f'Running {cmd}')
 
         output = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, **kwargs)
         output.check_returncode()
     except subprocess.CalledProcessError as e:
-        print(str(e.stderr))
+        print(e.stderr.decode())
         if return_stderr:
             return e.stderr.decode()
 

@@ -42,6 +42,21 @@ class SambaShare:
         )
 
 class SambaConfig():
+    DEFAULT_GLOBAL_SECTION = {
+        'workgroup': 'WORKGROUP',
+        'server string': '%h server (Samba)',
+        'server role': 'standalone server',
+        'log file': '/var/log/samba/log.%m',
+        'max log size': '1000',
+        'logging': 'file',
+        'map to guest': 'bad user',
+        # Keep samba and unix users separated, makes everything easier
+        'unix password sync': 'no',
+        'pam password change': 'no',
+        # Disable usershare to keep everything under control
+        'usershare max shares': '0',
+        'password chat': '"new password" %n\\n "retype new password" %n\\n "Password changed"'
+    }
     REQUIRED_CLI_TOOLS = ['testparm', 'smbd', 'smbcontrol', 'smbstatus']
     RESERVED_SECTIONS = ['homes', 'printers', 'global', 'print$']
     COMMENTS_LINE_START = ['#', ';']
@@ -68,6 +83,7 @@ class SambaConfig():
     def __init__(self, override_config_file_location=None) -> None:
         flatpak_prefix = '/var/run/host'
         self.config_file_location = '/etc/samba/smb.conf'
+        self.sys_config_file_location = self.config_file_location
         self.tmp_config_file_location = GLib.get_user_cache_dir()
 
         if os.environ.get('container') == 'flatpak':
@@ -81,7 +97,9 @@ class SambaConfig():
         self.data = configparser.ConfigParser(
             comment_prefixes=self.COMMENTS_LINE_START,
             inline_comment_prefixes=self.COMMENTS_LINE_START,
-            strict=True
+            strict=True,
+            interpolation=None,
+            default_section='global'
         )
 
         if os.path.exists(self.config_file_location):
@@ -108,40 +126,34 @@ class SambaConfig():
 
     def is_config_supported(self):
         if self.REQUIRED_HEADER_LINE not in self._config_file_content:
+            logging.warning('required header line not found')
             return False
 
         pattern = r'# Hash:\s*([a-fA-F0-9]{32})'
         match = re.search(pattern, self._config_file_content, re.MULTILINE)
 
         if not match:
+            logging.warning('hash not found')
             return False
 
         stored_hash = match.group(1)
-        current_hash = self.get_md5()
+        current_hash = self.get_md5(file_path=self.config_file_location)
+
+        if stored_hash != current_hash:
+            logging.warning('hash do not match:')
+
         return stored_hash == current_hash
 
     def init_with_defaults(self):
-        self.data['global'] = {
-            'workgroup': 'WORKGROUP',
-            'server string': '%h server (Samba)',
-            'server role': 'standalone server',
-            'log file': '/var/log/samba/log.%m',
-            'max log file': '1000',
-            'logging': 'file',
-            'map to guest': 'bad user',
-            # Keep samba and unix users separated, makes everything easier
-            'unix password sync': 'no',
-            'pam password change': 'no',
-            # Disable usershare to keep everything under control
-            'usershare max shares': '0',
-        }
+        self.data.clear(    )
+        self.data['global'] = self.DEFAULT_GLOBAL_SECTION
 
     def save(self):
         text_content = self._get_text_content()
 
         random_string = utils.get_random_md5()
         testfile_path = os.path.join(self.tmp_config_file_location, f'{random_string}.conf')
-        config_file_hash = self.get_md5(file_path=testfile_path)
+        config_file_hash = self.get_md5(content=text_content)
         text_header = dedent(self.CONFIG_FILE_HEADER).replace('$file_hash', config_file_hash)
         text_content = '\n'.join([text_header, text_content])
 
@@ -160,8 +172,8 @@ class SambaConfig():
                 smbcontrol all reload-config
             """,
             testfile_path=testfile_path,
-            location=self.config_file_location,
-            location_old=f'{self.config_file_location}.simba.old'
+            location=self.sys_config_file_location,
+            location_old=f'{self.sys_config_file_location}.simba.old'
         )
 
         save_script.root_host_execute()
@@ -172,25 +184,28 @@ class SambaConfig():
         save_script.delete()
         self._parse()
 
-    def get_md5(self, file_path=None):
-        if not file_path:
-            file_path = self.config_file_location
+    def get_md5(self, file_path=None, content=''):
+        if (not content) and (not file_path):
+            raise Exception('Missing content and file_path')
 
-        with open(file_path, 'r') as f:
-            content = f.read()
-            valid_content = ''
-            for line in content.split('\n'):
-                is_comment = False
-                for s in self.COMMENTS_LINE_START:
-                    is_comment = line.startswith(s)
-                    
-                    if is_comment:
-                        break
+        if file_path:
+            with open(file_path, 'r') as f:
+                content = f.read()
+
+        valid_content = ''
+        for line in content.split('\n'):
+            skip_line = False
+            line = line.strip()
+            for s in self.COMMENTS_LINE_START:
+                skip_line = (not line) or line.startswith(s)
                 
-                if not is_comment:
-                    valid_content += '\n'
+                if skip_line:
+                    break
+            
+            if not skip_line:
+                valid_content += (line + '\n')
 
-            filehash = hashlib.md5(valid_content.encode()).hexdigest()
+        filehash = hashlib.md5(valid_content.encode()).hexdigest()
 
         return filehash
 
@@ -227,9 +242,9 @@ class SambaConfig():
             'browseable': True,
             'comment': share.comment,
             # we manually enforce 0644, default value would be 0755
-            'create_mask': '0644', 
+            'create mask': '0644', 
             # we are just expliciting the permission here, as 0755 is already the default for new directories
-            'directory_mask': '0755',  
+            'directory mask': '0755', 
         })
 
     def list_shares(self) -> list[SambaShare]:
@@ -258,8 +273,23 @@ class SambaConfig():
         passwd_confirm = shlex.quote(f'{passwd}\\n{passwd}\\n')
         user = shlex.quote(user)
 
-        command = f'echo -ne "{passwd_confirm}" | smbpasswd -L -s -a {user}'
+        command = f'echo -ne "{passwd_confirm}" | pdbedit --create --password-from-stdin {user}'
         terminal.host_sh(['pkexec', 'sh', '-c', command], hide_log=True)
+
+    def list_users(self):
+        data = terminal.host_sh(['pkexec', 'sh', '-c', 'pdbedit', '--list'], hide_log=True)
+        output = []
+
+        for line in data.split('\n'):
+            u, uid, comment = line.split(':')
+            output.append({
+                'user': u,
+                'uid': uid,
+                'comment': comment
+            })
+
+        return output
+
 
     def _get_text_content(self):
         # 1. Create the string buffer

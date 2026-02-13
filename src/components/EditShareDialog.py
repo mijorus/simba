@@ -112,9 +112,10 @@ class EditShareDialog(GObject.GObject):
             valitator=self.form_validator
         )
 
-        self.path_entry = Adw.ActionRow(
+        self.path_entry = Adw.EntryRow(
             title=_('Path'),
-            subtitle=share.share_path
+            text=share.share_path,
+            enable_emoji_completion=False
         )
 
         select_path_btn = Gtk.Button(icon_name='folder-symbolic', valign=Gtk.Align.CENTER)
@@ -145,9 +146,11 @@ class EditShareDialog(GObject.GObject):
 
     def name_entry_validator(self, text: str) -> bool:
         is_valid = text == re.sub(r'[^a-zA-Z0-9\_\-]', '', text)
+        return is_valid
 
     def desc_entry_validator(self, text: str) -> bool:
         is_valid = text == re.sub(r'[^0-9a-zA-ZÀ-ú\-\_\s]', '', text)
+        return is_valid
 
     def form_validator(self, entry_name: str, text: str) -> bool:
         is_valid = False
@@ -163,7 +166,7 @@ class EditShareDialog(GObject.GObject):
 
             validate_not_empty = [
                 self.name_entry.entry.get_text(), 
-                self.path_entry.get_subtitle()
+                self.path_entry.get_text()
             ]
             
             for entry in validate_not_empty:
@@ -177,7 +180,6 @@ class EditShareDialog(GObject.GObject):
             #TODO
 
         return is_valid
-
         
 
     def show(self):
@@ -213,7 +215,7 @@ class EditShareDialog(GObject.GObject):
             logging.error(str(e))
             return
         
-        self.path_entry.set_subtitle(selected_path)
+        self.path_entry.set_text(selected_path)
         self.share.share_path = selected_path
 
     def on_dialog_response(self, widget, response: str):
@@ -224,7 +226,7 @@ class EditShareDialog(GObject.GObject):
                 
             validate_not_empty = [
                 self.name_entry.entry.get_text(), 
-                self.path_entry.get_subtitle()
+                self.path_entry.get_text(),
             ]
             
             for entry in validate_not_empty:
