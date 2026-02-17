@@ -55,7 +55,7 @@ class SambaConfig():
         'pam password change': 'no',
         # Disable usershare to keep everything under control
         'usershare max shares': '0',
-        'password chat': '"new password" %n\\n "retype new password" %n\\n "Password changed"'
+        'passwd chat': '"new password" %n\\n "retype new password" %n\\n "Password changed"'
     }
     REQUIRED_CLI_TOOLS = ['testparm', 'smbd', 'smbcontrol', 'smbstatus']
     RESERVED_SECTIONS = ['homes', 'printers', 'global', 'print$']
@@ -269,15 +269,17 @@ class SambaConfig():
 
         return shares
 
-    def create_user(self, user, passwd):
+    @staticmethod
+    def create_user(user, passwd):
         passwd_confirm = shlex.quote(f'{passwd}\\n{passwd}\\n')
         user = shlex.quote(user)
 
         command = f'echo -ne "{passwd_confirm}" | pdbedit --create --password-from-stdin {user}'
-        terminal.host_sh(['pkexec', 'sh', '-c', command], hide_log=True)
+        terminal.host_sh(['pkexec', 'bash', '-c', command], hide_log=True)
 
-    def list_users(self):
-        data = terminal.host_sh(['pkexec', 'sh', '-c', 'pdbedit', '--list'], hide_log=True)
+    @staticmethod
+    def list_users():
+        data = terminal.host_sh(['pkexec', 'pdbedit', '--list'], hide_log=True)
         output = []
 
         for line in data.split('\n'):
