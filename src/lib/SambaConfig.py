@@ -46,7 +46,7 @@ class SambaConfig():
         'workgroup': 'WORKGROUP',
         'server string': '%h server (Samba)',
         'server role': 'standalone server',
-        'log file': '/var/log/samba/log.%m',
+        'log file': '/var/log/samba/log.%J',
         'max log size': '1000',
         'logging': 'file',
         'map to guest': 'bad user',

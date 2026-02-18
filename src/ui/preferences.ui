@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="Preferences" parent="GtkBox">
+  <property name="hexpand">true</property>
+  <property name="orientation">1</property>
+    <child>
+      <object class="AdwPreferencesPage">
+        <child>
+          <object class="AdwPreferencesGroup">
+            <property name="title" translatable="yes">Workgroup</property>
+            <property name="description" translatable="yes">This setting controls what workgroup your server will appear to be in; changing this setting from the default value "WORKGROUP" might impact the ability to connect to this computer.</property>
+            <child>
+              <object class="AdwEntryRow" id="workgroup_row">
+                <property name="title">Workgroup</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwPreferencesGroup">
+            <property name="title" translatable="yes">User shares</property>
+            <property name="description" translatable="yes">Allow specific users to create and manage their own shared folders; this enables integrations with some file managers like Thunar or Dolphin</property>
+            <child>
+              <object class="AdwSwitchRow" id="usershare_enabled">
+                <property name="title" translatable="true">Enable user shares</property>
+                <property name="subtitle" translatable="true">You can manage which user can set his own share in the "Users" tab</property>
+              </object>
+            </child>
+            <child>
+              <object class="AdwEntryRow" id="usershare_max_shares_row">
+                <property name="title" translatable="true">Max number of shares per-user</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwPreferencesGroup">
+            <property name="title" translatable="yes">Debugging</property>
+            <child>
+              <object class="AdwEntryRow" id="logfile_row">
+                <property name="title">Log file location</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

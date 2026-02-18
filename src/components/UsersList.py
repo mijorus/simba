@@ -61,7 +61,7 @@ class UsersList(Gtk.Box):
                 label=_('Add')
             )
         )
-        
+
         # save_btn = Gtk.Button(
         #     css_classes=['suggested-action'],
         #     child=Adw.ButtonContent(

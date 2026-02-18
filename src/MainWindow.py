@@ -4,6 +4,7 @@ import gi
 from .lib.SambaConfig import SambaConfig
 from .components.SharedFolders import SharedFolders
 from .components.UnsupportedConfig import UnsupportedConfig
+from .components.Preferences import Preferences
 from .components.UsersList import UsersList
 
 gi.require_version('Gtk', '4.0')
@@ -38,6 +39,7 @@ class MainWindow(Adw.Window):
 
             self.users_list = UsersList(self.config_manager)
             self.shared_folders_widget = SharedFolders(self.config_manager)
+            self.preferences_widget = Preferences(self.config_manager)
             self.shared_folders_widget.connect('save', self.on_save_btn_clicked)
 
             self.view_stack = Adw.ViewStack(margin_top=30)
@@ -45,7 +47,7 @@ class MainWindow(Adw.Window):
             self.view_stack.add_titled_with_icon(self.shared_folders_widget, 'shared_folders', _('Shared folders'), 'pencil')
             self.view_stack.add_titled_with_icon(self.users_list, 'users_list', _('Users list'), 'pencil')
             self.view_stack.add_titled_with_icon(Gtk.Label.new('printers'), 'printers', _('Printers and devices'), 'pencil')
-            self.view_stack.add_titled_with_icon(Gtk.Label.new('settings'), 'settings', _('Preferences'), 'pencil')
+            self.view_stack.add_titled_with_icon(self.preferences_widget, 'settings', _('Preferences'), 'pencil')
             self.view_switcher = Adw.ViewSwitcher(
                 stack=self.view_stack,
                 policy=Adw.ViewSwitcherPolicy.WIDE 
