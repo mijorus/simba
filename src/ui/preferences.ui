@@ -8,7 +8,7 @@
         <child>
           <object class="AdwPreferencesGroup">
             <property name="title" translatable="yes">Workgroup</property>
-            <property name="description" translatable="yes">This setting controls what workgroup your server will appear to be in; changing this setting from the default value "WORKGROUP" might impact the ability to connect to this computer.</property>
+            <property name="description" translatable="yes">This setting controls what workgroup your server will appear to be in; changing it from the default value "WORKGROUP" might impact the ability to connect to this computer.</property>
             <child>
               <object class="AdwEntryRow" id="workgroup_row">
                 <property name="title">Workgroup</property>
@@ -39,6 +39,8 @@
             <child>
               <object class="AdwEntryRow" id="logfile_row">
                 <property name="title">Log file location</property>
+                <property name="editable">0</property>
+                <property name="sensitive">0</property>
               </object>
             </child>
           </object>

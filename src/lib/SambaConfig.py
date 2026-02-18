@@ -42,6 +42,7 @@ class SambaShare:
         )
 
 class SambaConfig():
+    DEFAULT_SECTION = 'global'
     DEFAULT_GLOBAL_SECTION = {
         'workgroup': 'WORKGROUP',
         'server string': '%h server (Samba)',
@@ -99,7 +100,7 @@ class SambaConfig():
             inline_comment_prefixes=self.COMMENTS_LINE_START,
             strict=True,
             interpolation=None,
-            default_section='global'
+            default_section=self.DEFAULT_SECTION
         )
 
         if os.path.exists(self.config_file_location):

@@ -18,8 +18,21 @@ class Preferences(Gtk.Box):
         # 'fix_button_clicked': (GObject.SignalFlags.RUN_FIRST, None, (object,))
     }
 
+    workgroup_row = Gtk.Template.Child()
+    logfile_row = Gtk.Template.Child()
+    usershare_max_shares_row = Gtk.Template.Child()
+    usershare_enabled = Gtk.Template.Child()
+
     def __init__(self, manager: SambaConfig, **kwargs):
         super().__init__(**kwargs)
         self.manager = manager
-        self.workgroup_row = Gtk.Template.Child()
-        self.logifile_row = Gtk.Template.Child()
+        # self.workgroup_row = Gtk.Template.Child()
+        # self.logfile_row = Gtk.Template.Child()
+        # self.usershare_max_shares_row = Gtk.Template.Child()
+        # self.usershare_enabled = Gtk.Template.Child()
+
+        self.workgroup_row.set_text(self.manager.data[SambaConfig.DEFAULT_SECTION].get('workgroup', ''))
+        self.logfile_row.set_text(self.manager.data[SambaConfig.DEFAULT_SECTION].get('log file', ''))
+        self.usershare_max_shares_row.set_text(self.manager.data[SambaConfig.DEFAULT_SECTION].get('usershare max shares', '0'))
+        self.usershare_enabled.set_active(self.manager.data.has_option(SambaConfig.DEFAULT_SECTION, 'usershare path'))
+        
