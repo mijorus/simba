@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="SharedFolders" parent="GtkBox">
+    <property name="hexpand">true</property>
+    <property name="orientation">1</property>
+    <child>
+      <object class="AdwPreferencesPage" id="list_widget">
+        <child>
+          <object class="AdwPreferencesGroup">
+            <child type="header-suffix">
+              <object class="GtkBox">
+                <property name="spacing">6</property>
+                <property name="valign">center</property>
+                <child>
+                  <object class="GtkButton" id="add_button">
+                    <property name="icon_name">sb-plus</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkButton" id="save_button">
+                    <property name="label" translatable="yes">Save</property>
+                    <style>
+                      <class name="suggested-action"/>
+                    </style>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

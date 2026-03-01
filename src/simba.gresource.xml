@@ -5,6 +5,7 @@
         <file>ui/menu.ui</file>
         <file>ui/unsupported_config.ui</file>
         <file>ui/preferences.ui</file>
+        <file>ui/sharedfolders.ui</file>
         <file>assets/style.css</file>
     </gresource>
 </gresources>

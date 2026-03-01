@@ -12,88 +12,41 @@ gi.require_version('Adw', '1')
 from gi.repository import Gtk, Adw, GObject  # noqa
 
 
+@Gtk.Template(resource_path='/it/mijorus/simba/ui/sharedfolders.ui')
 class SharedFolders(Gtk.Box):
+    __gtype_name__ = 'SharedFolders'
     __gsignals__ = {
         "save": (GObject.SIGNAL_RUN_FIRST, GObject.TYPE_NONE, (object, )),
     }
+
+    add_button = Gtk.Template.Child()
+    list_widget = Gtk.Template.Child()
+    save_button = Gtk.Template.Child()
 
     def __init__(self, manager: SambaConfig):
         super().__init__()
 
         self.manager = manager
         self.folder_shares: list[FolderShare] = []
-
-        viewport = Gtk.Viewport.new()
-        clamp = Adw.Clamp.new()
-
-        container = Gtk.Box(
-            spacing=30,
-            orientation=Gtk.Orientation.VERTICAL
-        )
-
-        self.list_widget = Gtk.FlowBox(
-            max_children_per_line=1,
-            selection_mode=Gtk.SelectionMode.NONE,
-            row_spacing=20,
-        )
-
-        btns_row = Gtk.Box(
-            css_classes=['folder-share'],
-            orientation=Gtk.Orientation.HORIZONTAL,
-            hexpand=True,
-        )
-
-        add_btn = Gtk.Button(
-            css_classes=['flat'],
-            child=Adw.ButtonContent(
-                icon_name='sb-plus',
-                label=_('Add')
-            )
-        )
-        
-        save_btn = Gtk.Button(
-            css_classes=['suggested-action'],
-            child=Adw.ButtonContent(
-                icon_name='sb-checkmark',
-                label=_('Save')
-            )
-        )
-
-        btns_row_container = Gtk.Box(
-            orientation=Gtk.Orientation.HORIZONTAL,
-            halign=Gtk.Align.END,
-            spacing=10,
-            hexpand=True,
-        )
-
-        add_btn.connect('clicked', self.on_add_btn_clicked)
-        save_btn.connect('clicked', lambda w: self.emit('save', w))
-        [btns_row_container.append(w) for w in [
-            add_btn,
-            save_btn
-        ]]
-        
-        btns_row.append(btns_row_container)
-        container.append(btns_row)
-        container.append(self.list_widget)
-
-        clamp.set_child(container)
-        viewport.set_child(clamp)
-
-        self.append(viewport)
+        self.add_button.connect('clicked', self.on_add_btn_clicked)
+        self.save_button.connect('clicked', lambda w: self.emit('save', w))
 
     def reload_shares(self):
         if not self.manager.is_config_supported():
             return
 
         shares = self.manager.list_shares()
+        shares.reverse()
 
-        self.list_widget.remove_all()
+        for i, w in enumerate(self.folder_shares):
+            self.list_widget.remove(w)
+
+        self.folder_shares = []
 
         for share in shares:
             folder_share = FolderShare(share)
-            self.list_widget.prepend(folder_share)
-            self.folder_shares.insert(0, folder_share)
+            self.list_widget.add(folder_share)
+            self.folder_shares.append(folder_share)
 
             folder_share.connect('save', lambda *args: self.reload_shares())
             folder_share.connect('delete', self.on_share_deleted)

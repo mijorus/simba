@@ -1,10 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <template class="Preferences" parent="GtkBox">
-  <property name="hexpand">true</property>
-  <property name="orientation">1</property>
+    <property name="hexpand">true</property>
+    <property name="orientation">1</property>
     <child>
       <object class="AdwPreferencesPage">
+        <child>
+          <object class="AdwPreferencesGroup">
+            <child type="header-suffix">
+              <object class="GtkButton" id="save_button">
+                <property name="label" translatable="yes">Save</property>
+                <style>
+                  <class name="suggested-action"/>
+                </style>
+              </object>
+            </child>
+          </object>
+        </child>
         <child>
           <object class="AdwPreferencesGroup">
             <property name="title" translatable="yes">Workgroup</property>
@@ -27,7 +39,7 @@
               </object>
             </child>
             <child>
-              <object class="AdwEntryRow" id="usershare_max_shares_row">
+              <object class="AdwSpinRow" id="usershare_max_shares_row">
                 <property name="title" translatable="true">Max number of shares per-user</property>
               </object>
             </child>
