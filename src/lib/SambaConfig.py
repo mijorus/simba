@@ -281,9 +281,15 @@ class SambaConfig():
     @staticmethod
     def list_users():
         data = terminal.host_sh(['pkexec', 'pdbedit', '--list'], hide_log=True)
+        data = data.strip()
         output = []
 
         for line in data.split('\n'):
+            spl = line.split(':')
+
+            if len(spl) < 3:
+                continue
+
             u, uid, comment = line.split(':')
             output.append({
                 'user': u,

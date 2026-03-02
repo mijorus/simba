@@ -5,6 +5,8 @@ from ..lib.SambaConfig import SambaShare, SambaConfig
 from .FolderShare import FolderShare
 from .EditShareDialog import EditShareDialog
 from ..lib.HostSystem import HostSystem
+from .UserFormDialog import UserFormDialog
+
 
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
@@ -12,97 +14,26 @@ gi.require_version('Adw', '1')
 
 from gi.repository import Gtk, Adw, GObject  # noqa
 
-
+@Gtk.Template(resource_path='/it/mijorus/simba/ui/userslist.ui')
 class UsersList(Gtk.Box):
+    __gtype_name__ = 'UsersList'
     __gsignals__ = {
         "save": (GObject.SIGNAL_RUN_FIRST, GObject.TYPE_NONE, (object, )),
     }
+
+    add_button = Gtk.Template.Child()
+    banner = Gtk.Template.Child()
+    list_widget = Gtk.Template.Child()
+    save_button = Gtk.Template.Child()
 
     def __init__(self, manager: SambaConfig):
         super().__init__()
 
         self.manager = manager
-        self.folder_shares: list[FolderShare] = []
-
-        viewport = Gtk.Viewport.new()
-        clamp = Adw.Clamp.new()
-
-        container = Gtk.Box(
-            hexpand=True,
-            orientation=Gtk.Orientation.VERTICAL
-        )
-
-        # self.list_widget = Gtk.FlowBox(
-        #     max_children_per_line=1,
-        #     selection_mode=Gtk.SelectionMode.NONE,
-        #     row_spacing=20,
-        # )
-
-        self.list_widget = Adw.PreferencesGroup()
         self.user_widgets = []
-
-        self.banner = Adw.Banner(
-            title=_('Users management requires authentication'),
-            button_label=_('Unlock'),
-            revealed=True
-        )
-
         self.banner.connect('button_clicked', self.banner_btn_clicked)
-
-        btns_row = Gtk.Box(
-            orientation=Gtk.Orientation.HORIZONTAL,
-            hexpand=True,
-        )
-
-        add_btn = Gtk.Button(
-            css_classes=['flat'],
-            child=Adw.ButtonContent(
-                icon_name='sb-plus',
-                label=_('Add')
-            )
-        )
-
-        # save_btn = Gtk.Button(
-        #     css_classes=['suggested-action'],
-        #     child=Adw.ButtonContent(
-        #         icon_name='sb-checkmark',
-        #         label=_('Save')
-        #     )
-        # )
-
-        btns_row_container = Gtk.Box(
-            orientation=Gtk.Orientation.HORIZONTAL,
-            halign=Gtk.Align.END,
-            spacing=10,
-            hexpand=True,
-        )
-
-        add_btn.connect('clicked', self.on_add_btn_clicked)
-        # save_btn.connect('clicked', lambda w: self.emit('save', w))
-        [btns_row_container.append(w) for w in [
-            add_btn,
-            # save_btn
-        ]]
-        
-        btns_row.append(btns_row_container)
-        container.append(self.banner)
-
-        self.interactive_container = Gtk.Box(
-            spacing=30,
-            hexpand=True,
-            orientation=Gtk.Orientation.VERTICAL
-        )
-
-        self.interactive_container.append(btns_row)
-        self.interactive_container.append(self.list_widget)
-        self.interactive_container.set_sensitive(False)
-
-        container.append(self.interactive_container)
-
-        clamp.set_child(container)
-        viewport.set_child(clamp)
-
-        self.append(viewport)
+        self.add_button.connect('clicked', self.on_add_btn_clicked)
+        # self.list_widget.set_sensitive(False)
 
     def refresh_users(self, samba_users, sys_users):
         for w in self.user_widgets:
@@ -129,7 +60,7 @@ class UsersList(Gtk.Box):
         sys_users = HostSystem.list_users()
         self.refresh_users(samba_users, sys_users)
         self.banner.set_revealed(False)
-        self.interactive_container.set_sensitive(True)
+        self.list_widget.set_sensitive(True)
 
     def create_user_row(self, user_name, comment=''):
         # Create the ActionRow
@@ -157,4 +88,6 @@ class UsersList(Gtk.Box):
         return row
     
     def on_add_btn_clicked(self, *args):
-        pass
+        top_level = Gtk.Window.get_toplevels()[0]
+        form_dialog = UserFormDialog(parent=top_level)
+        form_dialog.present()
