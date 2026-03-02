@@ -28,21 +28,22 @@ class UsersList(Gtk.Box):
 
     def __init__(self, manager: SambaConfig):
         super().__init__()
-
         self.manager = manager
         self.user_widgets = []
         self.banner.connect('button_clicked', self.banner_btn_clicked)
         self.add_button.connect('clicked', self.on_add_btn_clicked)
+        self.samba_users = []
+        self.sys_users = []
         # self.list_widget.set_sensitive(False)
 
-    def refresh_users(self, samba_users, sys_users):
+    def refresh_users(self):
         for w in self.user_widgets:
             self.list_widget.remove(w)
 
-        for user in sys_users:
+        for user in self.sys_users:
             found = False
 
-            for suser in samba_users:
+            for suser in self.samba_users:
                 if suser['uid'] == user['uid']:
                     found = True
                     break
@@ -56,9 +57,9 @@ class UsersList(Gtk.Box):
             self.user_widgets.append(user_widget)
 
     def banner_btn_clicked(self, *args):
-        samba_users = self.manager.list_users()
-        sys_users = HostSystem.list_users()
-        self.refresh_users(samba_users, sys_users)
+        self.samba_users = self.manager.list_users()
+        self.sys_users = HostSystem.list_users()
+        self.refresh_users()
         self.banner.set_revealed(False)
         self.list_widget.set_sensitive(True)
 
@@ -91,3 +92,6 @@ class UsersList(Gtk.Box):
         top_level = Gtk.Window.get_toplevels()[0]
         form_dialog = UserFormDialog(parent=top_level)
         form_dialog.present()
+
+    def on_added_user(self, *args):
+        self.refresh_users()

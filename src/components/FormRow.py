@@ -21,6 +21,9 @@ class FormRow(Gtk.Box):
         )
 
         self._is_valid = True
+        if valitator:
+            self._is_valid = False
+
         self.max_length = max_length
         self.name = name
 

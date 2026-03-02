@@ -1,7 +1,11 @@
 import logging
+import os
+import traceback
 from shlex import quote
 
+from gi.repository import GLib
 from . import terminal
+from .ShellScript import ShellScript
 
 class HostSystem():
     MANAGE_USER_PREFIX = 'samba user - '
@@ -33,7 +37,7 @@ class HostSystem():
         return output
     
     @staticmethod
-    def create_system_user(username: str, comment:str):
+    def create_system_and_samba_user(username: str, comment: str, pwd: str):
         exists = False
         users = HostSystem.list_users()
 
@@ -48,8 +52,33 @@ class HostSystem():
         comment = HostSystem.MANAGE_USER_PREFIX + comment
 
         nologin = terminal.host_sh(['which', 'nologin'])
-        terminal.host_sh(['pkexec', 'bash', '-c', 'useradd', '--system', '--no-create-home',
-                          f'--shell={quote(nologin)}', username, f'--comment={quote(comment)}'])
+
+        script = ShellScript(
+            path=os.path.join(GLib.get_tmp_dir(), 'create_samba_user.sh'),
+            content="""
+                set -e
+                useradd --system --no-create-home --shell=$nologin $username $comment
+                echo -ne "$pwd" | pdbedit --create --password-from-stdin $username
+            """,
+            nologin=nologin,
+            username=username,
+            comment=comment,
+            pwd=pwd
+        )
+
+        try:
+            script.root_host_execute()
+        except Exception as e:
+            logging.error(traceback.format_exception(e))
+
+        script.delete()
+
+        users = HostSystem.list_users()
+        for u in users:
+            if u['username'] == username:
+                return u
+            
+        return None
         
     @staticmethod
     def delete_system_user(uid: str):
