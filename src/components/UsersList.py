@@ -90,7 +90,7 @@ class UsersList(Gtk.Box):
     
     def on_add_btn_clicked(self, *args):
         top_level = Gtk.Window.get_toplevels()[0]
-        form_dialog = UserFormDialog(parent=top_level)
+        form_dialog = UserFormDialog(parent=top_level, samba_users=self.samba_users)
         form_dialog.present()
 
     def on_added_user(self, *args):

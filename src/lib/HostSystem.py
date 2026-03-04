@@ -13,6 +13,7 @@ class HostSystem():
     @staticmethod
     def list_users():
         data = terminal.host_sh(['cat', '/etc/passwd'])
+        nologin = terminal.host_sh(['cat', '/etc/login.defs'])
         output = []
 
         for row in data.split('\n'):
@@ -29,7 +30,7 @@ class HostSystem():
                 'gid':       parts[3],
                 'comment':   parts[4], # User information/Full Name
                 'home':      parts[5],
-                'shell':     parts[6]
+                'shell':     parts[6],
             }
 
             output.append(user_data)
