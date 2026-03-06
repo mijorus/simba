@@ -27,7 +27,7 @@ class FormRow(Gtk.Box):
         self.max_length = max_length
         self.name = name
 
-        container = Gtk.ListBox(css_classes=['boxed-list'])
+        container = Gtk.ListBox()
 
         self.entry = Adw.EntryRow(
             title=title,

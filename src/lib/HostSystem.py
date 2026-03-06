@@ -13,7 +13,13 @@ class HostSystem():
     @staticmethod
     def list_users():
         data = terminal.host_sh(['cat', '/etc/passwd'])
-        nologin = terminal.host_sh(['cat', '/etc/login.defs'])
+        logindefs_max_uid = terminal.host_sh(['grep', '^SYS_UID_MAX', '/etc/login.defs'])
+        logindefs_max_uid_val = 499
+
+        if logindefs_max_uid:
+            logindefs_max_uid = logindefs_max_uid.replace('SYS_UID_MAX', '').strip()
+            logindefs_max_uid_val = int(logindefs_max_uid)
+
         output = []
 
         for row in data.split('\n'):
@@ -23,6 +29,8 @@ class HostSystem():
                 continue
 
             parts = row.split(':')
+            uid = int(parts[2])
+
             user_data = {
                 'username':  parts[0],
                 'password':  parts[1],
@@ -31,6 +39,8 @@ class HostSystem():
                 'comment':   parts[4], # User information/Full Name
                 'home':      parts[5],
                 'shell':     parts[6],
+                'is_system_user': uid < logindefs_max_uid_val,
+                'is_nologin': 'nologin' in parts[6],
             }
 
             output.append(user_data)

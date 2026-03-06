@@ -24,11 +24,9 @@ class UserFormDialog(Adw.MessageDialog):
 
         samba_usernames = [u['username'] for u in samba_users]
 
-
         users_list = []
         for u in HostSystem.list_users():
-            print(u)
-            if (u['is_nologin'] == False) and (u['username'] not in [*samba_usernames, 'root']):
+            if (u['is_system_user'] == False) and ('nologin' not in u['shell']):
                 users_list.append(u['username'])
 
         self.toggle_group = Adw.ToggleGroup(css_classes=['round'])
@@ -45,14 +43,13 @@ class UserFormDialog(Adw.MessageDialog):
         users_model = Gtk.StringList.new(users_list)
 
         # Create a form for a new user
-        self.form = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
+        self.form = Gtk.ListBox(css_classes=['boxed-list'])
 
         form_container.append(self.toggle_group)
         form_container.append(self.form)
 
         # Create a combo row for users
-        self.combo_row = Adw.ComboRow(title="Select an Option", model=users_model, visible=False,
-                                      css_classes=['boxed-list'])
+        self.combo_row = Adw.ComboRow(title=_("Select a user"), model=users_model, visible=False)   
 
         self.form.append(self.combo_row)
 
@@ -85,7 +82,7 @@ class UserFormDialog(Adw.MessageDialog):
 
         self.pwd_row = FormRow(
             name='pwd',
-            title='Password',
+            title='SMB Password',
             text='',
             valitator=self.pwd_validator,
             after_validation=self.check_form_is_valid
