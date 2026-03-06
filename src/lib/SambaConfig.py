@@ -40,6 +40,12 @@ class SambaShare:
             valid_users=[],
             force_user=None
         )
+    
+@dataclass
+class SambaUser:
+    user: str
+    uid: str
+    comment: str
 
 class SambaConfig():
     DEFAULT_SECTION = 'global'
@@ -272,14 +278,14 @@ class SambaConfig():
 
     @staticmethod
     def create_user(user, passwd):
-        passwd_confirm = shlex.quote(f'{passwd}\\n{passwd}\\n')
-        user = shlex.quote(user)
-
-        command = f'echo -ne "{passwd_confirm}" | pdbedit --create --password-from-stdin {user}'
+        command = 'echo -ne "{passwd}\\n{passwd}\\n" | pdbedit --create --password-from-stdin {user}'.format(
+            passwd=shlex.quote(passwd),
+            user=shlex.quote(user)
+        )
         terminal.host_sh(['pkexec', 'bash', '-c', command], hide_log=True)
 
     @staticmethod
-    def list_users():
+    def list_users() -> list[SambaUser]:
         data = terminal.host_sh(['pkexec', 'pdbedit', '--list'], hide_log=True)
         data = data.strip()
         output = []
@@ -291,11 +297,8 @@ class SambaConfig():
                 continue
 
             u, uid, comment = line.split(':')
-            output.append({
-                'user': u,
-                'uid': uid,
-                'comment': comment
-            })
+            user = SambaUser(user=u, uid=uid, comment=comment)
+            output.append(user)
 
         return output
 

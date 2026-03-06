@@ -16,6 +16,7 @@
           <object class="AdwPreferencesGroup" id="list_widget">
             <child type="header-suffix">
               <object class="GtkBox">
+                <property name="margin-bottom">10</property>
                 <property name="spacing">6</property>
                 <property name="valign">center</property>
                 <child>

@@ -1,7 +1,8 @@
 import os
 import gi
 
-from ..lib.SambaConfig import SambaShare, SambaConfig
+from ..lib.SambaConfig import SambaShare, SambaConfig, SambaUser
+from ..lib.HostSystem import UserAccount
 from .FolderShare import FolderShare
 from .EditShareDialog import EditShareDialog
 from ..lib.HostSystem import HostSystem
@@ -32,8 +33,8 @@ class UsersList(Gtk.Box):
         self.user_widgets = []
         self.banner.connect('button_clicked', self.banner_btn_clicked)
         self.add_button.connect('clicked', self.on_add_btn_clicked)
-        self.samba_users = []
-        self.sys_users = []
+        self.samba_users: list[SambaUser] = []
+        self.sys_users: list[UserAccount] = []
         # self.list_widget.set_sensitive(False)
 
     def refresh_users(self):
@@ -44,15 +45,14 @@ class UsersList(Gtk.Box):
             found = False
 
             for suser in self.samba_users:
-                if suser['uid'] == user['uid']:
+                if suser['uid'] == user.uid:
                     found = True
                     break
 
             if not found:
                 continue
-
             
-            user_widget = self.create_user_row(user['username'], user['comment'])
+            user_widget = self.create_user_row(user.username, user.comment)
             self.list_widget.add(user_widget)
             self.user_widgets.append(user_widget)
 
@@ -92,6 +92,18 @@ class UsersList(Gtk.Box):
         top_level = Gtk.Window.get_toplevels()[0]
         form_dialog = UserFormDialog(parent=top_level, samba_users=self.samba_users)
         form_dialog.present()
+
+        form_dialog.connect('save', self.on_new_user_created)
+
+    def on_new_user_created(self, obj, new_user: UserAccount):
+        self.sys_users.append(new_user)
+        self.samba_users.append(
+            SambaUser(user=new_user.username, 
+                      uid=new_user.uid, 
+                      comment='')
+        )
+
+        self.refresh_users()
 
     def on_added_user(self, *args):
         self.refresh_users()

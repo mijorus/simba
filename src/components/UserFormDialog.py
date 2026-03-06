@@ -6,14 +6,14 @@ from gi.repository import Gtk, Adw, GObject
 
 from .FormRow import FormRow
 from ..lib.HostSystem import HostSystem
-from ..lib.SambaConfig import SambaConfig
+from ..lib.SambaConfig import SambaConfig, SambaUser
 
 class UserFormDialog(Adw.MessageDialog):
     __gsignals__ = {
         "save": (GObject.SIGNAL_RUN_FIRST, GObject.TYPE_OBJECT, (object, )),
     }
 
-    def __init__(self, parent, samba_users: list[dict]):
+    def __init__(self, parent, samba_users: list[SambaUser]):
         super().__init__(
             transient_for=parent,
             heading=_("Add user"),
@@ -21,13 +21,13 @@ class UserFormDialog(Adw.MessageDialog):
         )
 
         self.set_default_size(400, 400)
-
-        samba_usernames = [u['username'] for u in samba_users]
+        samba_usernames = [u.user for u in samba_users]
 
         users_list = []
         for u in HostSystem.list_users():
-            if (u['is_system_user'] == False) and ('nologin' not in u['shell']):
-                users_list.append(u['username'])
+            if (u.is_system_user == False) and (not u.is_nologin) \
+                and (u.username not in samba_usernames):
+                users_list.append(u.username)
 
         self.toggle_group = Adw.ToggleGroup(css_classes=['round'])
         self.toggle_group.add(Adw.Toggle(label=_('New user'), name='new'))
@@ -43,15 +43,17 @@ class UserFormDialog(Adw.MessageDialog):
         users_model = Gtk.StringList.new(users_list)
 
         # Create a form for a new user
-        self.form = Gtk.ListBox(css_classes=['boxed-list'])
+        self.form = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
 
         form_container.append(self.toggle_group)
         form_container.append(self.form)
 
         # Create a combo row for users
-        self.combo_row = Adw.ComboRow(title=_("Select a user"), model=users_model, visible=False)   
+        combo_row_container = Gtk.ListBox(css_classes=['boxed-list'])
+        self.combo_row = Adw.ComboRow(title=_("Select a user"), model=users_model, visible=False)
+        combo_row_container.append(self.combo_row)
 
-        self.form.append(self.combo_row)
+        self.form.append(combo_row_container)
 
         # 2. Add Username Row
         self.username_row = FormRow(
@@ -85,10 +87,10 @@ class UserFormDialog(Adw.MessageDialog):
             title='SMB Password',
             text='',
             valitator=self.pwd_validator,
-            after_validation=self.check_form_is_valid
+            after_validation=self.check_form_is_valid,
         )
 
-        self.set_margin_top(20)
+        self.pwd_row.set_margin_top(20)
 
         self.pwd_confirm_row = FormRow(
             name='pwd_confirm',
@@ -120,28 +122,32 @@ class UserFormDialog(Adw.MessageDialog):
     def on_response(self, dialog, response):
         if response == "save":
             a = self.toggle_group.get_active_name()
+            pwd = self.pwd_row.entry.get_text()
+            pwd_check = self.pwd_confirm_row.entry.get_text()
+
+            if pwd != pwd_check:
+                raise Exception('Password and Password check are different')
+
             if a == 'new':
                 usn = self.username_row.entry.get_text()
                 fnm = self.fullname_row.entry.get_text()
-                pwd = self.pwd_row.entry.get_text()
                 new_user = HostSystem.create_system_and_samba_user(usn, fnm, pwd)
-                if new_user:
-                    pass
-                
-                self.emit('save', None)
-                return True
             else:
-                selected_username = self.combo_row.get_model().get_item(self.combo_row.get_selected())
-                print(selected_username)
-                # SambaConfig.create_user()
-            return False
-        else:
-            return True
+                selected_username = self.combo_row.get_model().get_item(self.combo_row.get_selected()).get_string()
+                SambaConfig.create_user(user=selected_username, passwd=pwd)
+                new_user = HostSystem.get_user(selected_username)
+
+            self.emit('save', new_user)
 
     def check_form_is_valid(self):
-        self.form_is_valid = all([w._is_valid for w in [
-                self.username_row, self.fullname_row, self.pwd_row, self.pwd_confirm_row]])
-        
+        active_usertype = self.toggle_group.get_active_name()
+
+        if active_usertype == 'new':
+            self.form_is_valid = all([w._is_valid for w in [
+                    self.username_row, self.fullname_row, self.pwd_row, self.pwd_confirm_row]])
+        else:
+            self.form_is_valid = all([w._is_valid for w in [self.pwd_row, self.pwd_confirm_row]])
+
         self.set_response_enabled('save', self.form_is_valid)
 
     def username_validator(self, name, text) -> bool:
@@ -149,7 +155,7 @@ class UserFormDialog(Adw.MessageDialog):
             return False
 
         for u in self.sys_users:
-            if u['username'] == text:
+            if u.username == text:
                 return False
             
         pattern = r"^[a-z0-9-_]+$"
@@ -173,3 +179,4 @@ class UserFormDialog(Adw.MessageDialog):
         self.username_row.set_visible(name == 'new')
         self.fullname_row.set_visible(name == 'new')
         self.combo_row.set_visible(name == 'existing')
+        self.check_form_is_valid()
