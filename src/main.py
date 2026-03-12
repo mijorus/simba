@@ -1,3 +1,4 @@
+import traceback
 import sys
 import gi
 import logging

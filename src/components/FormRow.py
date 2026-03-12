@@ -11,7 +11,7 @@ from gi.repository import Gtk, Adw, GObject  # noqa
 
 
 class FormRow(Gtk.Box):
-    def __init__(self, name: str, title: str, text: str, max_length=100, description: str='', valitator: callable=None, after_validation: callable=None) -> None:
+    def __init__(self, name: str, title: str, text: str, max_length=100, description: str='', valitator: callable=None, after_validation: callable=None, is_passwd=False) -> None:
         """
             validator: The validator function should return False if the string is not valid
         """
@@ -29,11 +29,18 @@ class FormRow(Gtk.Box):
 
         container = Gtk.ListBox(css_classes=['boxed-list'])
 
-        self.entry = Adw.EntryRow(
-            title=title,
-            text=text,
-            enable_emoji_completion=False
-        )
+        if is_passwd:
+            self.entry = Adw.PasswordEntryRow(
+                title=title,
+                text=text,
+                enable_emoji_completion=False
+            )
+        else:
+            self.entry = Adw.EntryRow(
+                title=title,
+                text=text,
+                enable_emoji_completion=False
+            )
 
         self.entry.get_delegate().set_max_length(max_length)
 

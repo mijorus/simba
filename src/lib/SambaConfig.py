@@ -278,11 +278,15 @@ class SambaConfig():
 
     @staticmethod
     def create_user(user, passwd):
-        command = 'echo -ne "{passwd}\\n{passwd}\\n" | pdbedit --create --password-from-stdin {user}'.format(
-            passwd=shlex.quote(passwd),
-            user=shlex.quote(user)
-        )
-        terminal.host_sh(['pkexec', 'bash', '-c', command], hide_log=True)
+        ShellScript(
+            filename='create_samba_user.sh',
+            content="""
+                set -e
+                echo -ne "$passwd\\n$passwd\\n" | pdbedit --create --password-from-stdin $user
+            """,
+            passwd=passwd,
+            user=user
+        ).host_execute()
 
     @staticmethod
     def list_users() -> list[SambaUser]:

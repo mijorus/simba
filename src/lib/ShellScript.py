@@ -2,12 +2,17 @@ import os
 import textwrap
 import shlex
 from string import Template
+from gi.repository import GLib
 
 from . import terminal
 
 class ShellScript():
-    def __init__(self, path, content, **kwargs):
+    def __init__(self, path: str | None=None, content: str='', filename=None, **kwargs):
+        if filename:
+            path = os.path.join(GLib.get_tmp_dir(), filename)
+
         self.path = path
+
         content = textwrap.dedent(content)
         t = Template(content)
         
@@ -16,20 +21,16 @@ class ShellScript():
 
         r = t.substitute(**kwargs)
 
-        with open(path, 'w+') as f:
+        with open(self.path, 'w+') as f:
             f.write(r)
 
-    def host_execute(self):
-        if self.path:
-            terminal.host_sh(['bash', '-c', f'chmod +x {shlex.quote(self.path)} && bash {shlex.quote(self.path)}'])
-        else:
-            raise Exception('File has been removed')
+    def host_execute(self, delete_after=True):
+        p = shlex.quote(self.path)
+        terminal.host_sh(['bash', '-c', f'chmod +x {p} && bash {p}'])
 
-    def root_host_execute(self):
-        if self.path:
-            terminal.host_sh(['pkexec', 'bash', '-c', f'chmod +x {shlex.quote(self.path)} && bash {shlex.quote(self.path)}'])
-        else:
-            raise Exception('File has been removed')
+    def root_host_execute(self, delete_after=True):
+        p = shlex.quote(self.path)
+        terminal.host_sh(['pkexec', 'bash', '-c', f'chmod +x {p} && bash {p}'])
 
     def delete(self):
         if self.path and os.path.exists(self.path):

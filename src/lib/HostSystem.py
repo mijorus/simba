@@ -68,7 +68,7 @@ class HostSystem():
         users = HostSystem.list_users()
 
         for u in users:
-            if u['username'] == username:
+            if u.username == username:
                 exists = True
                 break
 
@@ -79,7 +79,7 @@ class HostSystem():
 
         nologin = terminal.host_sh(['which', 'nologin'])
 
-        script = ShellScript(
+        ShellScript(
             path=os.path.join(GLib.get_tmp_dir(), 'create_samba_user.sh'),
             content="""
                 set -e
@@ -90,14 +90,7 @@ class HostSystem():
             username=username,
             comment=comment,
             pwd=pwd
-        )
-
-        try:
-            script.root_host_execute()
-        except Exception as e:
-            logging.error(traceback.format_exception(e))
-
-        script.delete()
+        ).root_host_execute(delete_after=True)
 
         users = HostSystem.list_users()
         for u in users:

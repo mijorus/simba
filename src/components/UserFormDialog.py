@@ -1,5 +1,8 @@
 import gi
 import re
+import logging
+import traceback
+
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 from gi.repository import Gtk, Adw, GObject
@@ -85,6 +88,7 @@ class UserFormDialog(Adw.MessageDialog):
         self.pwd_row = FormRow(
             name='pwd',
             title='SMB Password',
+            is_passwd=True,
             text='',
             valitator=self.pwd_validator,
             after_validation=self.check_form_is_valid,
@@ -94,6 +98,7 @@ class UserFormDialog(Adw.MessageDialog):
 
         self.pwd_confirm_row = FormRow(
             name='pwd_confirm',
+            is_passwd=True,
             title=_('Password confirm'),
             text='',
             valitator=self.pwd_validator,
@@ -131,11 +136,21 @@ class UserFormDialog(Adw.MessageDialog):
             if a == 'new':
                 usn = self.username_row.entry.get_text()
                 fnm = self.fullname_row.entry.get_text()
-                new_user = HostSystem.create_system_and_samba_user(usn, fnm, pwd)
+
+                try:
+                    new_user = HostSystem.create_system_and_samba_user(usn, fnm, pwd)
+                except Exception as e:
+                    logging.error(traceback.format_exc())
+                    return
             else:
                 selected_username = self.combo_row.get_model().get_item(self.combo_row.get_selected()).get_string()
-                SambaConfig.create_user(user=selected_username, passwd=pwd)
-                new_user = HostSystem.get_user(selected_username)
+
+                try:
+                    SambaConfig.create_user(user=selected_username, passwd=pwd)
+                    new_user = HostSystem.get_user(selected_username)
+                except Exception as e:
+                    logging.error(traceback.format_exc())
+                    return
 
             self.emit('save', new_user)
 

@@ -1,5 +1,7 @@
 import os
 import gi
+import traceback
+import logging
 
 from ..lib.SambaConfig import SambaShare, SambaConfig, SambaUser
 from ..lib.HostSystem import UserAccount
@@ -45,7 +47,7 @@ class UsersList(Gtk.Box):
             found = False
 
             for suser in self.samba_users:
-                if suser['uid'] == user.uid:
+                if suser.uid == user.uid:
                     found = True
                     break
 
@@ -57,8 +59,13 @@ class UsersList(Gtk.Box):
             self.user_widgets.append(user_widget)
 
     def banner_btn_clicked(self, *args):
-        self.samba_users = self.manager.list_users()
-        self.sys_users = HostSystem.list_users()
+        try:
+            self.samba_users = self.manager.list_users()
+            self.sys_users = HostSystem.list_users()
+        except Exception as e:
+            logging.error(traceback.format_exc())
+            return
+
         self.refresh_users()
         self.banner.set_revealed(False)
         self.list_widget.set_sensitive(True)
