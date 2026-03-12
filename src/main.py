@@ -4,8 +4,9 @@ import gi
 import logging
 import os
 
+from .lib.terminal import host_sh
 from .lib.constants import *
-from .utils import make_option
+from .lib.utils import mapped_path
 from .MainWindow import MainWindow
 
 gi.require_version('Gtk', '4.0')
@@ -110,6 +111,9 @@ def main(version: str, datadir: str) -> None:
         level= logging.DEBUG,
         force=True
     )
+
+    # Create tmp dir
+    host_sh(['mkdir', '-p', os.path.join('/tmp', APP_ID, RUN_ID)])
 
     app = Simba(version=version, datadir=datadir)
     app.run(sys.argv)

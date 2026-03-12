@@ -88,14 +88,9 @@ class SambaConfig():
     """
 
     def __init__(self, override_config_file_location=None) -> None:
-        flatpak_prefix = '/var/run/host'
-        self.config_file_location = '/etc/samba/smb.conf'
+        self.config_file_location = utils.mapped_path('/etc/samba/smb.conf')
         self.sys_config_file_location = self.config_file_location
         self.tmp_config_file_location = GLib.get_user_cache_dir()
-
-        if os.environ.get('container') == 'flatpak':
-            self.config_file_location = flatpak_prefix +  self.config_file_location
-            # self.tmp_config_file_location = flatpak_prefix + self.tmp_config_file_location
 
         if override_config_file_location:
             self.config_file_location = override_config_file_location
@@ -171,7 +166,7 @@ class SambaConfig():
         terminal.host_sh(['testparm', '--suppress-prompt', testfile_path])
 
         save_script = ShellScript(
-            path=os.path.join(self.tmp_config_file_location, 'save_samba_config.sh'),
+            filename='save_samba_config.sh',
             content="""
                 set -e
                 cp $location $location_old
@@ -278,15 +273,16 @@ class SambaConfig():
 
     @staticmethod
     def create_user(user, passwd):
+        pass_str = f'{passwd}\\n{passwd}\\n'
         ShellScript(
             filename='create_samba_user.sh',
             content="""
                 set -e
-                echo -ne "$passwd\\n$passwd\\n" | pdbedit --create --password-from-stdin $user
+                echo -ne $passwd | pdbedit --create --password-from-stdin $user
             """,
-            passwd=passwd,
+            passwd=pass_str,
             user=user
-        ).host_execute()
+        ).root_host_execute()
 
     @staticmethod
     def list_users() -> list[SambaUser]:

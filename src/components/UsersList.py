@@ -27,7 +27,6 @@ class UsersList(Gtk.Box):
     add_button = Gtk.Template.Child()
     banner = Gtk.Template.Child()
     list_widget = Gtk.Template.Child()
-    save_button = Gtk.Template.Child()
 
     def __init__(self, manager: SambaConfig):
         super().__init__()

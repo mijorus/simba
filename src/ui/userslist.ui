@@ -24,14 +24,6 @@
                     <property name="icon_name">sb-plus</property>
                   </object>
                 </child>
-                <child>
-                  <object class="GtkButton" id="save_button">
-                    <property name="label" translatable="yes">Save</property>
-                    <style>
-                      <class name="suggested-action"/>
-                    </style>
-                  </object>
-                </child>
               </object>
             </child>
           </object>

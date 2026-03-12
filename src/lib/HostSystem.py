@@ -80,7 +80,7 @@ class HostSystem():
         nologin = terminal.host_sh(['which', 'nologin'])
 
         ShellScript(
-            path=os.path.join(GLib.get_tmp_dir(), 'create_samba_user.sh'),
+            filename='create_samba_user.sh',
             content="""
                 set -e
                 useradd --system --no-create-home --shell=$nologin $username $comment
