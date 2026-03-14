@@ -6,6 +6,7 @@ from dataclasses import dataclass
 
 from gi.repository import GLib
 from . import terminal
+from .utils import mapped_path
 from .ShellScript import ShellScript
 
 
@@ -23,7 +24,7 @@ class UserAccount:
     is_nologin: bool
 
 class HostSystem():
-    MANAGE_USER_PREFIX = 'samba user - '
+    MANAGE_USER_PREFIX = 'samba user'
 
     @staticmethod
     def list_users() -> list[UserAccount]:
@@ -75,22 +76,23 @@ class HostSystem():
         if exists:
             raise Exception(f'User {username} already exists')
 
-        comment = HostSystem.MANAGE_USER_PREFIX + comment
-
         nologin = terminal.host_sh(['which', 'nologin'])
+
+        comment = HostSystem.MANAGE_USER_PREFIX
+        pass_str = f'{pwd}\\n{pwd}\\n'
 
         ShellScript(
             filename='create_samba_user.sh',
             content="""
                 set -e
-                useradd --system --no-create-home --shell=$nologin $username $comment
-                echo -ne "$pwd" | pdbedit --create --password-from-stdin $username
+                useradd --system --no-create-home --shell=$nologin $username --comment=$comment
+                echo -ne $pwd | pdbedit --create --password-from-stdin $username
             """,
             nologin=nologin,
             username=username,
             comment=comment,
-            pwd=pwd
-        ).root_host_execute(delete_after=True)
+            pwd=pass_str,
+        ).root_host_execute(delete_after=False)
 
         users = HostSystem.list_users()
         for u in users:
@@ -110,18 +112,33 @@ class HostSystem():
         return None
         
     @staticmethod
-    def delete_system_user(uid: str):
-        nologin = terminal.host_sh(['which', 'nologin'])
+    def delete_system_and_samba_user(user: UserAccount):
         users = HostSystem.list_users()
-        user = None
+        found = False
 
         for u in users:
-            if u.uid == uid and u.is_nologin and \
+            if u.username == user.username and u.is_nologin and u.is_system_user and \
                 u.comment.startswith(HostSystem.MANAGE_USER_PREFIX):
-                user = u
+                found = True
                 break
 
-        if user:
-            terminal.host_sh(['pkexec', 'bash', '-c', 'userdel', user.username])
-        else:
-            logging.warning(f"Can't delete user {uid}: user is either missing or was not created by this app")
+        if not found:
+            Exception(f'Missing user {user.username}')
+
+
+        folder_exists = True
+
+        try:
+            os.listdir(mapped_path(user.home))
+        except FileNotFoundError as e:
+            folder_exists = False
+
+        if folder_exists:
+            raise Exception(f'Cannot delete {user.username}: folder exists')
+
+        ShellScript(filename="delete_samba_user.sh",
+            content="""
+            set -e
+            pdbedit --delete $user
+            userdel $user
+        """, user=user.username).root_host_execute()

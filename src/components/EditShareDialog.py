@@ -49,10 +49,10 @@ class EditShareDialog(GObject.GObject):
             text=share.name,
             description=_('How share will be visible on the network. Only numbers, letters and dashes are allowed'),
             max_length=8,
-            valitator=self.form_validator
+            min_length=3
+            valitator=self.name_entry_validator,
+            after_validation=self.after_validation,
         )
-
-        self.name_entry.entry.connect('changed', self.on_name_changed)
 
         self.desc_entry = FormRow(
             name='description',
@@ -60,18 +60,21 @@ class EditShareDialog(GObject.GObject):
             text=share.comment,
             max_length=100,
             description=_('Additional information that might be helpful to identify this share'),
-            valitator=self.form_validator
+            valitator=self.desc_entry_validator,
+            after_validation=self.after_validation
         )
 
-        self.path_entry = Adw.EntryRow(
+        self.path_entry = FormRow(
+            name='path',
             title=_('Path'),
             text=share.share_path,
-            enable_emoji_completion=False
+            show_constrains=False,
+            min_length=0,
         )
 
         select_path_btn = Gtk.Button(icon_name='folder-symbolic', valign=Gtk.Align.CENTER)
         select_path_btn.connect('clicked', self.on_select_path_btn_clicked)
-        self.path_entry.add_suffix(select_path_btn)
+        self.path_entry.entry.add_suffix(select_path_btn)
         
         form_container = FormContainer()
         form_container.append(self.path_entry)
@@ -103,48 +106,42 @@ class EditShareDialog(GObject.GObject):
         is_valid = text == re.sub(r'[^0-9a-zA-ZÀ-ú\-\_\s]', '', text)
         return is_valid
 
-    def form_validator(self, entry_name: str, text: str) -> bool:
-        is_valid = False
+    # def form_validator(self, entry_name: str, text: str) -> bool:
+    #     is_valid = False
 
-        if entry_name == 'name':
-            is_valid = text == re.sub(r'[^a-zA-Z0-9\_\-]', '', text)
-        elif entry_name == 'description':
-            is_valid = text == re.sub(r'[^0-9a-zA-ZÀ-ú\-\_\s]', '', text)
+    #     if entry_name == 'name':
+    #         is_valid = text == re.sub(r'[^a-zA-Z0-9\_\-]', '', text)
+    #     elif entry_name == 'description':
+    #         is_valid = text == re.sub(r'[^0-9a-zA-ZÀ-ú\-\_\s]', '', text)
 
 
-        if is_valid:
-            self.valid_form = True
+    #     if is_valid:
+    #         self.valid_form = True
 
-            validate_not_empty = [
-                self.name_entry.entry.get_text(), 
-                self.path_entry.get_text()
-            ]
+    #         validate_not_empty = [
+    #             self.name_entry.entry.get_text(), 
+    #             self.path_entry.get_text()
+    #         ]
             
-            for entry in validate_not_empty:
-                if not entry:
-                    self.valid_form = False
-        else:
-            self.valid_form = False
+    #         for entry in validate_not_empty:
+    #             if not entry:
+    #                 self.valid_form = False
+    #     else:
+    #         self.valid_form = False
 
-        if not self.valid_form:
-            pass
-            #TODO
+    #     if not self.valid_form:
+    #         pass
+    #         #TODO
 
-        return is_valid
+    #     return is_valid
+    def after_validation(self):
+        self.valid_form = all([w._is_valid for w in [
+                    self.desc_entry, self.name_entry, self.path_entry]])
         
+        self.widget.set_response_enabled('save', self.valid_form)
 
     def show(self):
         self.widget.show()
-
-    def on_name_changed(self, widget):
-        # if widget.get_text():
-        #     self.widget.set_heading(widget.get_text())
-        #     self.widget.remove_css_class('dim-heading-dialog')
-        # else:
-        #     self.widget.set_heading(_('Insert a name'))
-        #     self.widget.add_css_class('dim-heading-dialog')
-
-        pass
 
     def on_select_path_btn_clicked(self, widget):
         dialog = Gtk.FileDialog(title=_('Select a folder'), modal=True)
@@ -171,18 +168,8 @@ class EditShareDialog(GObject.GObject):
 
     def on_dialog_response(self, widget, response: str):
         if response == 'save':
-            for entry in [self.name_entry, self.desc_entry]:
-                if not entry._is_valid:
-                    return
-                
-            validate_not_empty = [
-                self.name_entry.entry.get_text(), 
-                self.path_entry.get_text(),
-            ]
-            
-            for entry in validate_not_empty:
-                if not entry:
-                    return
+            if not self.valid_form:
+                raise Exception('Form is not valid')
 
             self.share.name = self.name_entry.entry.get_text()
             self.share.comment = self.desc_entry.entry.get_text()

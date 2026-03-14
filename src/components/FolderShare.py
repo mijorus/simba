@@ -36,7 +36,7 @@ class FolderShare(Adw.PreferencesGroup):
 
         edit_button = Gtk.Button(
             child=Adw.ButtonContent(
-                icon_name='pencil-symbolic',
+                icon_name='sb-pencil-symbolic',
                 label=_('Edit')
             )
         )

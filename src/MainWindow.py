@@ -44,10 +44,10 @@ class MainWindow(Adw.Window):
 
             self.view_stack = Adw.ViewStack(margin_top=30)
             self.view_stack.add(self.unsuppoted_config)
-            self.view_stack.add_titled_with_icon(self.shared_folders_widget, 'shared_folders', _('Shared folders'), 'pencil')
-            self.view_stack.add_titled_with_icon(self.users_list, 'users_list', _('Users list'), 'pencil')
-            self.view_stack.add_titled_with_icon(Gtk.Label.new('printers'), 'printers', _('Printers and devices'), 'pencil')
-            self.view_stack.add_titled_with_icon(self.preferences_widget, 'settings', _('Preferences'), 'pencil')
+            self.view_stack.add_titled_with_icon(self.shared_folders_widget, 'shared_folders', _('Shared folders'), 'sb-pencil')
+            self.view_stack.add_titled_with_icon(self.users_list, 'users_list', _('Users list'), 'sb-pencil')
+            self.view_stack.add_titled_with_icon(Gtk.Label.new('printers'), 'printers', _('Printers and devices'), 'sb-pencil')
+            self.view_stack.add_titled_with_icon(self.preferences_widget, 'settings', _('Preferences'), 'sb-pencil')
             self.view_switcher = Adw.ViewSwitcher(
                 stack=self.view_stack,
                 policy=Adw.ViewSwitcherPolicy.WIDE 

@@ -11,7 +11,8 @@ from gi.repository import Gtk, Adw, GObject  # noqa
 
 
 class FormRow(Gtk.Box):
-    def __init__(self, name: str, title: str, text: str, max_length=100, description: str='', valitator: callable=None, after_validation: callable=None, is_passwd=False) -> None:
+    def __init__(self, name: str, title: str, text: str, max_length=100, min_length=0, show_constrains=True,
+                description: str='', valitator: callable=None, after_validation: callable=None, is_passwd=False) -> None:
         """
             validator: The validator function should return False if the string is not valid
         """
@@ -25,6 +26,7 @@ class FormRow(Gtk.Box):
             self._is_valid = False
 
         self.max_length = max_length
+        self.min_length = min_length
         self.name = name
 
         container = Gtk.ListBox(css_classes=['boxed-list'])
@@ -48,8 +50,15 @@ class FormRow(Gtk.Box):
         self.after_validation = after_validation
         self.entry.connect('changed', self.on_entry_changed)
 
+        desc_suffix = ''
+        if show_constrains:
+            desc_suffix = _(' (max. {max_char})').format(max_char=max_length)
+
+            if min_length:
+                desc_suffix = _(' (min. {min_char}, max. {max_char})').format(max_char=max_length, min_char=min_length)
+
         desc = Gtk.Label(
-            label=description + ' (max. {max_char} characters)'.format(max_char=max_length),
+            label=' '.join([description, desc_suffix]),
             halign=Gtk.Align.START,
             css_classes=['dim-label', 'toolbar', 'caption']
         )
@@ -62,7 +71,13 @@ class FormRow(Gtk.Box):
     
     def on_entry_changed(self, widget):
         if self.validator:
-            self._is_valid = self.validator(self.name, widget.get_text())
+            text = widget.get_text()
+            l = len(text)
+
+            if (l > self.max_length) or (l < self.min_length):
+                self._is_valid = False
+            else:
+                self._is_valid = self.validator(self.name, widget.get_text())
 
             if not self._is_valid:
                 widget.add_css_class('error')

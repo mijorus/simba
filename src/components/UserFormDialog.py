@@ -63,6 +63,7 @@ class UserFormDialog(Adw.MessageDialog):
             name='username',
             title='User Name',
             text='',
+            min_length=3,
             max_length=32,
             valitator=self.username_validator,
             after_validation=self.check_form_is_valid,
@@ -73,23 +74,25 @@ class UserFormDialog(Adw.MessageDialog):
         self.username_row.validator = self.username_validator
 
         # 3. Add Full Name Row
-        self.fullname_row = FormRow(
-            name='full_name',
-            title='Full Name',
-            text='',
-            max_length=32,
-            description=_('The full name of the new user')
-        )
+        # self.fullname_row = FormRow(
+        #     name='full_name',
+        #     title='Full Name',
+        #     text='',
+        #     max_length=32,
+        #     description=_('The full name of the new user')
+        # )
 
         self.sys_users = HostSystem.list_users()
 
-        self.form.append(self.fullname_row)
+        # self.form.append(self.fullname_row)
 
         self.pwd_row = FormRow(
             name='pwd',
             title='SMB Password',
             is_passwd=True,
             text='',
+            min_length=5,
+            max_length=128,
             valitator=self.pwd_validator,
             after_validation=self.check_form_is_valid,
         )
@@ -101,6 +104,8 @@ class UserFormDialog(Adw.MessageDialog):
             is_passwd=True,
             title=_('Password confirm'),
             text='',
+            min_length=5,
+            max_length=128,
             valitator=self.pwd_validator,
             after_validation=self.check_form_is_valid
         )
@@ -135,10 +140,10 @@ class UserFormDialog(Adw.MessageDialog):
 
             if a == 'new':
                 usn = self.username_row.entry.get_text()
-                fnm = self.fullname_row.entry.get_text()
+                # fnm = self.fullname_row.entry.get_text()
 
                 try:
-                    new_user = HostSystem.create_system_and_samba_user(usn, fnm, pwd)
+                    new_user = HostSystem.create_system_and_samba_user(usn, '', pwd)
                 except Exception as e:
                     logging.error(traceback.format_exc())
                     return
@@ -159,16 +164,13 @@ class UserFormDialog(Adw.MessageDialog):
 
         if active_usertype == 'new':
             self.form_is_valid = all([w._is_valid for w in [
-                    self.username_row, self.fullname_row, self.pwd_row, self.pwd_confirm_row]])
+                    self.username_row, self.pwd_row, self.pwd_confirm_row]])
         else:
             self.form_is_valid = all([w._is_valid for w in [self.pwd_row, self.pwd_confirm_row]])
 
         self.set_response_enabled('save', self.form_is_valid)
 
     def username_validator(self, name, text) -> bool:
-        if not text:
-            return False
-
         for u in self.sys_users:
             if u.username == text:
                 return False
@@ -181,9 +183,6 @@ class UserFormDialog(Adw.MessageDialog):
         return True
     
     def pwd_validator(self, name, text) -> bool:
-        if len(text) < 5:
-            return False
-        
         if name == 'pwd_confirm':
             return text == self.pwd_row.entry.get_text()
         
@@ -192,6 +191,6 @@ class UserFormDialog(Adw.MessageDialog):
     def switch_user_type(self, *args):
         name = self.toggle_group.get_active_name()
         self.username_row.set_visible(name == 'new')
-        self.fullname_row.set_visible(name == 'new')
+        # self.fullname_row.set_visible(name == 'new')
         self.combo_row.set_visible(name == 'existing')
         self.check_form_is_valid()

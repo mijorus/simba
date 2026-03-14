@@ -36,7 +36,7 @@ class UsersList(Gtk.Box):
         self.add_button.connect('clicked', self.on_add_btn_clicked)
         self.samba_users: list[SambaUser] = []
         self.sys_users: list[UserAccount] = []
-        # self.list_widget.set_sensitive(False)
+        self.list_widget.set_sensitive(False)
 
     def refresh_users(self):
         for w in self.user_widgets:
@@ -53,7 +53,7 @@ class UsersList(Gtk.Box):
             if not found:
                 continue
             
-            user_widget = self.create_user_row(user.username, user.comment)
+            user_widget = self.create_user_row(user)
             self.list_widget.add(user_widget)
             self.user_widgets.append(user_widget)
 
@@ -69,26 +69,38 @@ class UsersList(Gtk.Box):
         self.banner.set_revealed(False)
         self.list_widget.set_sensitive(True)
 
-    def create_user_row(self, user_name, comment=''):
+    def create_user_row(self, user: UserAccount):
         # Create the ActionRow
+        user_name = user.username
+        comment = user.comment
         row = Adw.ActionRow()
 
         if comment:
-            row.set_title(comment)
-            row.set_subtitle(user_name)
+            if comment == HostSystem.MANAGE_USER_PREFIX:
+                row.set_title(user_name)
+                row.set_subtitle(comment)
+            else:
+                row.set_title(comment)
+                row.set_subtitle(user_name)
         else:
             row.set_title(user_name)
 
         # 1. Add an Avatar as a Prefix
         avatar = Adw.Avatar(size=32, text=user_name, show_initials=True)
-        row.add_prefix(avatar)
 
-        # # 2. Add a status indicator or button as a Suffix
-        # status_label = Gtk.Label(label=user_data["status"])
-        # status_label.add_css_class("dim-label") # Standard Adwaita styling
-        # row.add_suffix(status_label)
-        
-        # 3. Add an arrow to indicate it's clickable
+        delete_button = Gtk.Button(
+            child=Adw.ButtonContent(
+                icon_name='user-trash-symbolic',
+                css_classes=['error'],
+                label=_('Remove')
+            )
+        )
+
+        delete_button.connect('clicked', 
+                              lambda *args: self.on_delete_user_clicked(user))
+
+        row.add_suffix(delete_button)
+        row.add_prefix(avatar)
         row.set_activatable(True)
         row.set_selectable(False)
 
@@ -110,6 +122,14 @@ class UsersList(Gtk.Box):
         )
 
         self.refresh_users()
+
+    def on_delete_user_clicked(self, user: UserAccount):
+        pass
+        # for u in self.sys_users:
+        #     if u.username == user_name and u.comment.startswith(HostSystem.MANAGE_USER_PREFIX):
+        #         for su in self.samba_users:
+        #             if su.user == user_name:
+        #                 return
 
     def on_added_user(self, *args):
         self.refresh_users()

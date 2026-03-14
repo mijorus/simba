@@ -63,6 +63,7 @@ class SharedFolders(Gtk.Box):
                 break
 
     def on_add_share_save(self, obj, share: SambaShare):
+        print('qwe')
         self.manager.create_share(share)
         self.reload_shares()
 

@@ -19,7 +19,7 @@ def get_random_md5():
     return md5_hash
 
 def mapped_path(path):
-    flatpak_prefix = '/var/run/host'
+    flatpak_prefix = '/run/host'
     if os.environ.get('container') == 'flatpak':
         return flatpak_prefix + path
     
