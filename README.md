@@ -1,6 +1,6 @@
-# simba
+# Simba
 
-A description of this project.
+Work in progress SAMBA manager UI for linux.
 
 
 ## Build and run
