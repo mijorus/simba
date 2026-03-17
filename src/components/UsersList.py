@@ -88,18 +88,20 @@ class UsersList(Gtk.Box):
         # 1. Add an Avatar as a Prefix
         avatar = Adw.Avatar(size=32, text=user_name, show_initials=True)
 
-        delete_button = Gtk.Button(
-            child=Adw.ButtonContent(
-                icon_name='user-trash-symbolic',
-                css_classes=['error'],
-                label=_('Remove')
+        if 'sambashare' in user.groups:
+            delete_button = Gtk.Button(
+                child=Adw.ButtonContent(
+                    icon_name='user-trash-symbolic',
+                    css_classes=['error'],
+                    label=_('Remove')
+                )
             )
-        )
 
-        delete_button.connect('clicked', 
-                              lambda *args: self.on_delete_user_clicked(user))
+            delete_button.connect('clicked', 
+                                lambda *args: self.on_delete_user_clicked(user))
 
-        row.add_suffix(delete_button)
+            row.add_suffix(delete_button)
+
         row.add_prefix(avatar)
         row.set_activatable(True)
         row.set_selectable(False)
@@ -124,7 +126,8 @@ class UsersList(Gtk.Box):
         self.refresh_users()
 
     def on_delete_user_clicked(self, user: UserAccount):
-        pass
+        
+
         # for u in self.sys_users:
         #     if u.username == user_name and u.comment.startswith(HostSystem.MANAGE_USER_PREFIX):
         #         for su in self.samba_users:

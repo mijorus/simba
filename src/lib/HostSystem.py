@@ -22,6 +22,8 @@ class UserAccount:
     shell: str
     is_system_user: bool
     is_nologin: bool
+    groups: list[str]
+    is_deletable: bool=False
 
 class HostSystem():
     MANAGE_USER_PREFIX = 'samba user'
@@ -29,6 +31,7 @@ class HostSystem():
     @staticmethod
     def list_users() -> list[UserAccount]:
         data = terminal.host_sh(['cat', '/etc/passwd'])
+        groups_data = terminal.host_sh(['cat', '/etc/group'])
         logindefs_max_uid = terminal.host_sh(['grep', '^SYS_UID_MAX', '/etc/login.defs'])
         logindefs_max_uid_val = 499
 
@@ -38,6 +41,25 @@ class HostSystem():
 
         output = []
 
+        user_to_groups: dict[str, list[str]] = {}
+        for grow in groups_data.split('\n'):
+            grow = grow.strip()
+            if (not grow) or grow.startswith('#'):
+                continue
+            gparts = grow.split(':')
+            if len(gparts) < 4:
+                continue
+
+            gname, _, ggid, members = gparts[0], gparts[1], gparts[2], gparts[3]
+            for member in members.split(','):
+                member = member.strip()
+
+                if member:
+                    if not member in user_to_groups:
+                        user_to_groups[member] = []
+
+                    user_to_groups[member].append(gname)
+
         for row in data.split('\n'):
             row = row.strip()
 
@@ -46,6 +68,9 @@ class HostSystem():
 
             parts = row.split(':')
             uid = int(parts[2])
+            is_nologin = 'nologin' in parts[6]
+            is_system_user = uid < logindefs_max_uid_val
+            u_groups = user_to_groups.get(parts[0], [])
 
             user_data = UserAccount(
                 username=  parts[0],
@@ -55,8 +80,10 @@ class HostSystem():
                 comment=   parts[4], # User information/Full Name
                 home=      parts[5],
                 shell=     parts[6],
-                is_system_user= uid < logindefs_max_uid_val,
-                is_nologin= 'nologin' in parts[6],
+                is_system_user=is_system_user,
+                is_nologin=is_nologin,
+                groups=u_groups,
+                is_deletable=(is_nologin and is_system_user and ('sambashare' in u_groups))
             )
 
             output.append(user_data)
@@ -117,14 +144,12 @@ class HostSystem():
         found = False
 
         for u in users:
-            if u.username == user.username and u.is_nologin and u.is_system_user and \
-                u.comment.startswith(HostSystem.MANAGE_USER_PREFIX):
+            if u.username == user.username and u.is_deletable:
                 found = True
                 break
 
         if not found:
-            Exception(f'Missing user {user.username}')
-
+            raise Exception(f'Missing user or not editable user: {user.username}')
 
         folder_exists = True
 
@@ -134,7 +159,7 @@ class HostSystem():
             folder_exists = False
 
         if folder_exists:
-            raise Exception(f'Cannot delete {user.username}: folder exists')
+            raise Exception(f'Cannot delete {user.username}: home folder exists')
 
         ShellScript(filename="delete_samba_user.sh",
             content="""
