@@ -126,6 +126,7 @@ class UsersList(Gtk.Box):
         self.refresh_users()
 
     def on_delete_user_clicked(self, user: UserAccount):
+        pass
         
 
         # for u in self.sys_users:

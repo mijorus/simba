@@ -239,15 +239,18 @@ class SambaConfig():
 
         self.create_section(share.name, {
             'path': share.share_path,
-            'writeable': share.writeable,
-            'public': share.public,
-            'browseable': True,
+            'writeable': self._bool_value(share.writeable),
+            'public': self._bool_value(share.public),
+            'browseable': self._bool_value(True),
             'comment': share.comment,
             # we manually enforce 0644, default value would be 0755
             'create mask': '0644', 
             # we are just expliciting the permission here, as 0755 is already the default for new directories
             'directory mask': '0755', 
         })
+
+    def _bool_value(self, val: bool):
+        return 'yes' if val else 'no'
 
     def list_shares(self) -> list[SambaShare]:
         shares = []
@@ -256,8 +259,6 @@ class SambaConfig():
                 continue
 
             writeable = data.getboolean('writeable', True)
-            if 'read_only' in data:
-                writeable = not data['read_only']
 
             share = SambaShare(
                 name=section,

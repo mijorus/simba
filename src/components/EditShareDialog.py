@@ -49,8 +49,8 @@ class EditShareDialog(GObject.GObject):
             text=share.name,
             description=_('How share will be visible on the network. Only numbers, letters and dashes are allowed'),
             max_length=8,
-            min_length=3
-            valitator=self.name_entry_validator,
+            min_length=3,
+            validator=self.name_entry_validator,
             after_validation=self.after_validation,
         )
 
@@ -60,7 +60,7 @@ class EditShareDialog(GObject.GObject):
             text=share.comment,
             max_length=100,
             description=_('Additional information that might be helpful to identify this share'),
-            valitator=self.desc_entry_validator,
+            validator=self.desc_entry_validator,
             after_validation=self.after_validation
         )
 
@@ -69,40 +69,40 @@ class EditShareDialog(GObject.GObject):
             title=_('Path'),
             text=share.share_path,
             show_constrains=False,
-            min_length=0,
+            min_length=1,
         )
 
-        select_path_btn = Gtk.Button(icon_name='folder-symbolic', valign=Gtk.Align.CENTER)
+        select_path_btn = Gtk.Button(icon_name='sb-folder-symbolic', valign=Gtk.Align.CENTER)
         select_path_btn.connect('clicked', self.on_select_path_btn_clicked)
         self.path_entry.entry.add_suffix(select_path_btn)
         
-        form_container = FormContainer()
-        form_container.append(self.path_entry)
-
-        readonly_row = Adw.ActionRow(
+        readonly_row_container = Gtk.ListBox(css_classes=['boxed-list'])
+        self.readonly_row = Adw.SwitchRow(
             title=_('Read only'),
-            subtitle=_('When a share is set as read-only, clients will not be able to modify, create or delete files')
+            subtitle=_('When a share is set as read-only, clients will not be able to modify, create or delete files'),
+            active=(share.writeable == False),
         )
 
-        self.readonly_switch = Gtk.Switch(valign=Gtk.Align.CENTER, active=(share.writeable == False))
-        readonly_row.add_suffix(self.readonly_switch)
-        form_container.append(readonly_row)
+        readonly_row_container.append(self.readonly_row)
 
         [form.append(w) for w in [
             self.name_entry, 
             self.desc_entry, 
-            form_container,
+            self.path_entry,
+            readonly_row_container,
         ]]
+
+        self.after_validation()
 
         container.append(form)
         self.widget.set_extra_child(container)
         self.widget.set_default_size(500, 700)
 
-    def name_entry_validator(self, text: str) -> bool:
+    def name_entry_validator(self, name, text: str) -> bool:
         is_valid = text == re.sub(r'[^a-zA-Z0-9\_\-]', '', text)
         return is_valid
 
-    def desc_entry_validator(self, text: str) -> bool:
+    def desc_entry_validator(self, name, text: str) -> bool:
         is_valid = text == re.sub(r'[^0-9a-zA-ZÀ-ú\-\_\s]', '', text)
         return is_valid
 
@@ -163,7 +163,7 @@ class EditShareDialog(GObject.GObject):
             logging.error(str(e))
             return
         
-        self.path_entry.set_text(selected_path)
+        self.path_entry.entry.set_text(selected_path)
         self.share.share_path = selected_path
 
     def on_dialog_response(self, widget, response: str):
@@ -173,7 +173,7 @@ class EditShareDialog(GObject.GObject):
 
             self.share.name = self.name_entry.entry.get_text()
             self.share.comment = self.desc_entry.entry.get_text()
-            self.share.writeable = self.readonly_switch.get_active()
+            self.share.writeable = (not self.readonly_row.get_active())
 
             self.emit('save', self.share)
 

@@ -12,7 +12,7 @@ from gi.repository import Gtk, Adw, GObject  # noqa
 
 class FormRow(Gtk.Box):
     def __init__(self, name: str, title: str, text: str, max_length=100, min_length=0, show_constrains=True,
-                description: str='', valitator: callable=None, after_validation: callable=None, is_passwd=False) -> None:
+                description: str='', validator: callable=None, after_validation: callable=None, is_passwd=False) -> None:
         """
             validator: The validator function should return False if the string is not valid
         """
@@ -22,8 +22,7 @@ class FormRow(Gtk.Box):
         )
 
         self._is_valid = True
-        if valitator:
-            self._is_valid = False
+        self.after_validation = None
 
         self.max_length = max_length
         self.min_length = min_length
@@ -46,7 +45,11 @@ class FormRow(Gtk.Box):
 
         self.entry.get_delegate().set_max_length(max_length)
 
-        self.validator = valitator
+        self.validator = validator
+
+        if validator:
+            self.on_entry_changed(self.entry)
+
         self.after_validation = after_validation
         self.entry.connect('changed', self.on_entry_changed)
 
@@ -68,7 +71,6 @@ class FormRow(Gtk.Box):
         self.append(container)
         self.append(desc)
 
-    
     def on_entry_changed(self, widget):
         if self.validator:
             text = widget.get_text()

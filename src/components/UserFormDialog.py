@@ -65,7 +65,7 @@ class UserFormDialog(Adw.MessageDialog):
             text='',
             min_length=3,
             max_length=32,
-            valitator=self.username_validator,
+            validator=self.username_validator,
             after_validation=self.check_form_is_valid,
             description=_('The name of the new system user that will be created, only letters and numbers are accepted')
         )
@@ -93,7 +93,7 @@ class UserFormDialog(Adw.MessageDialog):
             text='',
             min_length=5,
             max_length=128,
-            valitator=self.pwd_validator,
+            validator=self.pwd_validator,
             after_validation=self.check_form_is_valid,
         )
 
@@ -106,7 +106,7 @@ class UserFormDialog(Adw.MessageDialog):
             text='',
             min_length=5,
             max_length=128,
-            valitator=self.pwd_validator,
+            validator=self.pwd_validator,
             after_validation=self.check_form_is_valid
         )
 

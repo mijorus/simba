@@ -29,7 +29,9 @@ class SharedFolders(Gtk.Box):
         self.manager = manager
         self.folder_shares: list[FolderShare] = []
         self.add_button.connect('clicked', self.on_add_btn_clicked)
-        self.save_button.connect('clicked', lambda w: self.emit('save', w))
+        self.save_button.connect('clicked', self.on_save_btn_clicked)
+        self.save_button.set_sensitive(False)
+        self.reload_shares()
 
     def reload_shares(self):
         if not self.manager.is_config_supported():
@@ -42,17 +44,23 @@ class SharedFolders(Gtk.Box):
             self.list_widget.remove(w)
 
         self.folder_shares = []
-
         for share in shares:
             folder_share = FolderShare(share)
             self.list_widget.add(folder_share)
             self.folder_shares.append(folder_share)
 
-            folder_share.connect('save', lambda *args: self.reload_shares())
+            folder_share.connect('save', self.on_folder_share_save)
             folder_share.connect('delete', self.on_share_deleted)
+
+    def on_folder_share_save(self, obj, share: SambaShare):
+        self.manager.delete_share(share)
+        self.manager.create_share(share)
+        self.reload_shares()
+        self.save_button.set_sensitive(True)
 
     def on_save_btn_clicked(self, widget: Gtk.Button):
         self.manager.save()
+        self.save_button.set_sensitive(False)
 
     def on_share_deleted(self, obj, share: SambaShare):
         self.manager.delete_share(share)
@@ -60,11 +68,12 @@ class SharedFolders(Gtk.Box):
         for folder_share in self.folder_shares:
             if folder_share.share.name == share.name:
                 self.list_widget.remove(folder_share)
+                self.save_button.set_sensitive(True)
                 break
 
     def on_add_share_save(self, obj, share: SambaShare):
-        print('qwe')
         self.manager.create_share(share)
+        self.save_button.set_sensitive(True)
         self.reload_shares()
 
     def on_add_btn_clicked(self, widget: Gtk.Button):

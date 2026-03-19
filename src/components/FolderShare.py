@@ -62,20 +62,19 @@ class FolderShare(Adw.PreferencesGroup):
 
         path_row = Adw.ActionRow(title=_('Path'), subtitle=share.share_path)
         path_row.add_prefix(
-            Gtk.Image(icon_name='file-cabinet-symbolic', pixel_size=self.FEATURE_ICON_PIXEL_SIZE)
+            Gtk.Image(icon_name='sb-file-cabinet-symbolic', pixel_size=self.FEATURE_ICON_PIXEL_SIZE)
         )
+
+        features_list.append(path_row)
 
         read_only_row = False
         if not share.writeable:
             read_only_row = Adw.ActionRow(title=_('Read only'), subtitle=_("The content of this share can't be modified"))
             read_only_row.add_prefix(
-                Gtk.Image(icon_name='eye-symbolic', pixel_size=self.FEATURE_ICON_PIXEL_SIZE)
+                Gtk.Image(icon_name='sb-eye-symbolic', pixel_size=self.FEATURE_ICON_PIXEL_SIZE)
             )
 
-        [features_list.append(w) if w else None for w in [
-            path_row,
-            read_only_row
-        ]]
+            features_list.append(read_only_row)
 
         self.set_header_suffix(header_suffix_container)
         self.add(features_list)
@@ -93,4 +92,5 @@ class FolderShare(Adw.PreferencesGroup):
         self.emit('delete', self.share)
 
     def on_edit_share_save(self, widget, share: SambaShare):
+        
         self.emit('save', share)

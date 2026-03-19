@@ -40,7 +40,6 @@ class MainWindow(Adw.Window):
             self.users_list = UsersList(self.config_manager)
             self.shared_folders_widget = SharedFolders(self.config_manager)
             self.preferences_widget = Preferences(self.config_manager)
-            self.shared_folders_widget.connect('save', self.on_save_btn_clicked)
 
             self.view_stack = Adw.ViewStack(margin_top=30)
             self.view_stack.add(self.unsuppoted_config)
@@ -78,10 +77,6 @@ class MainWindow(Adw.Window):
 
             self.set_content(toolbar_view)
 
-
-    def on_save_btn_clicked(self, *args):
-        if self.config_manager:
-            self.config_manager.save()
 
     def refresh_valid_config(self):
         if self.config_manager and self.view_stack and self.view_switcher:
