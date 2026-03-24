@@ -30,6 +30,17 @@
         </child>
         <child>
           <object class="AdwPreferencesGroup">
+            <property name="title" translatable="yes">NetBIOS name</property>
+            <property name="description" translatable="yes">This sets the name of the current machine; usually you can access this machine by its local IP address or the NetBIOS name.</property>
+            <child>
+              <object class="AdwEntryRow" id="netbios_row">
+                <property name="title">NetBIOS name</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwPreferencesGroup">
             <property name="title" translatable="yes">User shares</property>
             <property name="description" translatable="yes">Allow specific users to create and manage their own shared folders; this enables integrations with some file managers like Thunar or Dolphin</property>
             <child>

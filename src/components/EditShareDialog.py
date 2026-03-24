@@ -7,6 +7,7 @@ gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 
 from ..lib.SambaConfig import SambaShare
+from ..lib.HostSystem import HostSystem
 from .FormRow import FormRow
 from gi.repository import Gtk, Adw, GObject  # noqa
 
@@ -41,7 +42,14 @@ class EditShareDialog(GObject.GObject):
         self.widget.connect('response', self.on_dialog_response)
 
         container = Gtk.Box(vexpand=True, orientation=Gtk.Orientation.VERTICAL)
-        form = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        form = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=20)
+
+        users_list = []
+        for u in HostSystem.list_users():
+            if ((u.is_system_user == False) and (not u.is_nologin)) or u.has_sambashare_group:
+                users_list.append(u.username)
+
+        self.users_model = Gtk.StringList.new(users_list)
 
         self.name_entry = FormRow(
             name='name',
@@ -75,6 +83,25 @@ class EditShareDialog(GObject.GObject):
         select_path_btn = Gtk.Button(icon_name='sb-folder-symbolic', valign=Gtk.Align.CENTER)
         select_path_btn.connect('clicked', self.on_select_path_btn_clicked)
         self.path_entry.entry.add_suffix(select_path_btn)
+
+        force_user_container = Gtk.ListBox(css_classes=['boxed-list'])
+        self.force_user_togglerow = Adw.SwitchRow(
+            title=_('Force connecting as a specific user'),
+            subtitle=_('When enabled, file operations on this share will be recorded as a pre-defined user'),
+            active=(share.force_user != None),
+        )
+
+        self.force_user_togglerow.connect('notify::active', self.on_force_user_togglerow_changed)
+
+        self.force_user_row = Adw.ComboRow(title=_("Connect as..."), model=self.users_model,
+                                           visible=(self.force_user_togglerow.get_active()))
+
+        if share.force_user and share.force_user in users_list:
+            self.force_user_row.set_selected(users_list.index(share.force_user))
+
+        force_user_container.append(self.force_user_togglerow)
+        force_user_container.append(self.force_user_row)
+
         
         readonly_row_container = Gtk.ListBox(css_classes=['boxed-list'])
         self.readonly_row = Adw.SwitchRow(
@@ -89,6 +116,7 @@ class EditShareDialog(GObject.GObject):
             self.name_entry, 
             self.desc_entry, 
             self.path_entry,
+            force_user_container,
             readonly_row_container,
         ]]
 
@@ -174,7 +202,16 @@ class EditShareDialog(GObject.GObject):
             self.share.name = self.name_entry.entry.get_text()
             self.share.comment = self.desc_entry.entry.get_text()
             self.share.writeable = (not self.readonly_row.get_active())
+            
+            if self.force_user_togglerow.get_active() == False:
+                self.share.force_user = None
+            else:
+                self.share.force_user = self.users_model.get_string(self.force_user_row.get_selected())
 
             self.emit('save', self.share)
+
+    def on_force_user_togglerow_changed(self, *args):
+        b = self.force_user_togglerow.get_active()
+        self.force_user_row.set_visible(b)
 
 GObject.type_register(EditShareDialog)

@@ -60,16 +60,19 @@ class FormRow(Gtk.Box):
             if min_length:
                 desc_suffix = _(' (min. {min_char}, max. {max_char})').format(max_char=max_length, min_char=min_length)
 
-        desc = Gtk.Label(
-            label=' '.join([description, desc_suffix]),
-            halign=Gtk.Align.START,
-            css_classes=['dim-label', 'toolbar', 'caption']
-        )
+        desc_string = ' '.join([description, desc_suffix])
 
         container.append(self.entry)
-
         self.append(container)
-        self.append(desc)
+
+        if desc_string.strip():
+            desc = Gtk.Label(
+                label=desc_string,
+                halign=Gtk.Align.START,
+                css_classes=['dim-label', 'toolbar', 'caption']
+            )
+
+            self.append(desc)
 
     def on_entry_changed(self, widget):
         if self.validator:

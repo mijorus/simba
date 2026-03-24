@@ -23,9 +23,11 @@ class UserAccount:
     is_system_user: bool
     is_nologin: bool
     groups: list[str]
+    has_sambashare_group: bool
     is_deletable: bool=False
 
 class HostSystem():
+    SAMBA_GROUP = 'sambashare'
     MANAGE_USER_PREFIX = 'samba user'
 
     @staticmethod
@@ -83,7 +85,8 @@ class HostSystem():
                 is_system_user=is_system_user,
                 is_nologin=is_nologin,
                 groups=u_groups,
-                is_deletable=(is_nologin and is_system_user and ('sambashare' in u_groups))
+                has_sambashare_group=(HostSystem.SAMBA_GROUP in u_groups),
+                is_deletable=(is_nologin and is_system_user and (HostSystem.SAMBA_GROUP in u_groups))
             )
 
             output.append(user_data)
@@ -112,13 +115,15 @@ class HostSystem():
             filename='create_samba_user.sh',
             content="""
                 set -e
-                useradd --system --no-create-home --shell=$nologin $username --comment=$comment
+                groupadd --force $group
+                useradd --system --no-create-home --shell=$nologin $username --comment=$comment --groups=$group
                 echo -ne $pwd | pdbedit --create --password-from-stdin $username
             """,
             nologin=nologin,
             username=username,
             comment=comment,
             pwd=pass_str,
+            group=HostSystem.SAMBA_GROUP
         ).root_host_execute(delete_after=False)
 
         users = HostSystem.list_users()

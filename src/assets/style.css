@@ -6,3 +6,7 @@
 .messagedialog.dim-heading-dialog label.title-2 {
     opacity: 0.5;
 }
+
+.warning-row {
+    background-color: alpha(@warning_color, 0.08);
+}

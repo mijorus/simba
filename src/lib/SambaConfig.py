@@ -19,6 +19,12 @@ from .ShellScript import ShellScript
 from . import terminal, utils
 from gi.repository import GLib  # noqa
 
+
+@dataclass
+class WarningEntry:
+    title: str
+    description: str
+
 @dataclass
 class SambaShare:
     name: str
@@ -51,6 +57,7 @@ class SambaConfig():
     DEFAULT_SECTION = 'global'
     DEFAULT_GLOBAL_SECTION = {
         'workgroup': 'WORKGROUP',
+        'netbios name': '',
         'server string': '%h server (Samba)',
         'server role': 'standalone server',
         'log file': '/var/log/samba/log.%J',
@@ -91,6 +98,7 @@ class SambaConfig():
         self.config_file_location = utils.mapped_path('/etc/samba/smb.conf')
         self.sys_config_file_location = self.config_file_location
         self.tmp_config_file_location = GLib.get_user_cache_dir()
+        self.service_name = 'smb.service'
 
         if override_config_file_location:
             self.config_file_location = override_config_file_location
@@ -103,6 +111,15 @@ class SambaConfig():
             interpolation=None,
             default_section=self.DEFAULT_SECTION
         )
+
+        for s in ['smb.service', 'smbd.service']:
+            try:
+                terminal.host_sh(['systemctl', 'list-unit-files', s])
+                self.service_name = s
+                break
+
+            except Exception as e:
+                pass
 
         if os.path.exists(self.config_file_location):
             self._parse()
@@ -124,7 +141,36 @@ class SambaConfig():
         if SambaConfig.get_samba_version()[0] != '4':
             return False
         
+        smbservice = False
+        for s in ['smb.service', 'smbd.service']:
+            try:
+                terminal.host_sh(['systemctl', 'list-unit-files', s])
+                smbservice = True
+            except Exception as e:
+                pass
+        
+        if not smbservice:
+            return False
+
         return True
+
+    @staticmethod
+    def scan_warnings():
+        _warnings: list[WarningEntry] = []
+
+        try:
+            terminal.host_sh(['which', 'getsebool'])
+            se_resp = terminal.host_sh(['getsebool', 'samba_enable_home_dirs'])
+            print(se_resp)
+            if se_resp.endswith('> off'):
+                _warnings.append(WarningEntry(
+                    title=_('SELinux'),
+                    description=_('SELinux policy "samba_enable_home_dirs" is off, this might cause issues when trying to share folder in your home directory')
+                ))
+        except Exception as e:
+            pass
+
+        return _warnings
 
     def is_config_supported(self):
         if self.REQUIRED_HEADER_LINE not in self._config_file_content:
@@ -171,9 +217,10 @@ class SambaConfig():
                 set -e
                 cp $location $location_old
                 cp $testfile_path $location
-                smbcontrol all reload-config
+                systemctl restart $service
             """,
             testfile_path=testfile_path,
+            service=self.service_name,
             location=self.sys_config_file_location,
             location_old=f'{self.sys_config_file_location}.simba.old'
         )
@@ -236,18 +283,23 @@ class SambaConfig():
         name_check, name_check_error = self.check_valid_share_name(share.name)
         if not name_check:
             raise Exception(f'{share.name}: ' + name_check_error)
-
-        self.create_section(share.name, {
+        
+        section_content = {
             'path': share.share_path,
             'writeable': self._bool_value(share.writeable),
             'public': self._bool_value(share.public),
             'browseable': self._bool_value(True),
             'comment': share.comment,
             # we manually enforce 0644, default value would be 0755
-            'create mask': '0644', 
+            # 'create mask': '0644', 
             # we are just expliciting the permission here, as 0755 is already the default for new directories
-            'directory mask': '0755', 
-        })
+            # 'directory mask': '0755', 
+        }
+
+        if share.force_user:
+            section_content['force user'] = share.force_user
+
+        self.create_section(share.name, section_content)
 
     def _bool_value(self, val: bool):
         return 'yes' if val else 'no'
@@ -265,7 +317,8 @@ class SambaConfig():
                 share_path=data.get('path', ''),
                 comment=data.get('comment', ''),
                 writeable=writeable,
-                public=data.getboolean('public', True)
+                public=data.getboolean('public', True),
+                force_user=data.get('force user', None)
             )
 
             shares.append(share)

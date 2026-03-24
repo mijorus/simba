@@ -88,8 +88,9 @@ class UsersList(Gtk.Box):
         # 1. Add an Avatar as a Prefix
         avatar = Adw.Avatar(size=32, text=user_name, show_initials=True)
 
-        if 'sambashare' in user.groups:
+        if user.has_sambashare_group:
             delete_button = Gtk.Button(
+                valign=Gtk.Align.CENTER,
                 child=Adw.ButtonContent(
                     icon_name='user-trash-symbolic',
                     css_classes=['error'],
