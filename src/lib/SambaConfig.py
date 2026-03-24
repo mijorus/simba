@@ -288,12 +288,11 @@ class SambaConfig():
             'path': share.share_path,
             'writeable': self._bool_value(share.writeable),
             'public': self._bool_value(share.public),
-            'browseable': self._bool_value(True),
             'comment': share.comment,
-            # we manually enforce 0644, default value would be 0755
-            # 'create mask': '0644', 
-            # we are just expliciting the permission here, as 0755 is already the default for new directories
-            # 'directory mask': '0755', 
+
+            # MacOS stuff
+            'veto files': '/.DS_Store/._.*/',
+            'delete veto files': self._bool_value(True)
         }
 
         if share.force_user:
