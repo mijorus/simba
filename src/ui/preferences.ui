@@ -46,12 +46,19 @@
             <child>
               <object class="AdwSwitchRow" id="usershare_enabled">
                 <property name="title" translatable="true">Enable user shares</property>
-                <property name="subtitle" translatable="true">You can manage which user can set his own share in the "Users" tab</property>
+                <property name="subtitle" translatable="true">You can manage which users that can set their own shares in the "Users" tab</property>
               </object>
             </child>
             <child>
               <object class="AdwSpinRow" id="usershare_max_shares_row">
                 <property name="title" translatable="true">Max number of shares per-user</property>
+                <property name="adjustment">
+                  <object class="GtkAdjustment">
+                    <property name="lower">1</property>
+                    <property name="upper">10</property>
+                    <property name="step-increment">1</property>
+                  </object>
+                </property>
               </object>
             </child>
           </object>

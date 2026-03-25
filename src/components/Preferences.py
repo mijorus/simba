@@ -31,10 +31,11 @@ class Preferences(Gtk.Box):
         self.workgroup_row.set_text(self.manager.data[SambaConfig.DEFAULT_SECTION].get('workgroup', ''))
         self.netbios_row.set_text(self.manager.data[SambaConfig.DEFAULT_SECTION].get('netbios name', ''))
         self.logfile_row.set_text(self.manager.data[SambaConfig.DEFAULT_SECTION].get('log file', ''))
-        self.usershare_max_shares_row.set_text(self.manager.data[SambaConfig.DEFAULT_SECTION].get('usershare max shares', '0'))
+        self.usershare_max_shares_row.set_text(self.manager.data[SambaConfig.DEFAULT_SECTION].get('usershare max shares', '1'))
         self.usershare_enabled.set_active(self.manager.data.has_option(SambaConfig.DEFAULT_SECTION, 'usershare path'))
 
-        self.usershare_max_shares_row.set_range(1, 10)
+        self.usershare_max_shares_row.set_sensitive(self.usershare_enabled.get_active())
+        self.usershare_enabled.connect('notify::active', lambda w, _: self.usershare_max_shares_row.set_sensitive(w.get_active()))
 
         self.save_button.connect('clicked', self.on_save_clicked)
 

@@ -160,9 +160,19 @@ class SambaConfig():
 
         try:
             terminal.host_sh(['which', 'getsebool'])
-            se_resp = terminal.host_sh(['getsebool', 'samba_enable_home_dirs'])
-            print(se_resp)
-            if se_resp.endswith('> off'):
+            resp = terminal.host_sh(['getsebool', 'samba_enable_home_dirs'])
+            if resp.endswith('> off'):
+                _warnings.append(WarningEntry(
+                    title=_('SELinux'),
+                    description=_('SELinux policy "samba_enable_home_dirs" is off, this might cause issues when trying to share folder in your home directory')
+                ))
+        except Exception as e:
+            pass
+
+        try:
+            terminal.host_sh(['which', 'firewall-cmd'])
+            resp = terminal.host_sh(['firewall-cmd', '--list-services'])
+            if 'samba' not in resp.split(' '):
                 _warnings.append(WarningEntry(
                     title=_('SELinux'),
                     description=_('SELinux policy "samba_enable_home_dirs" is off, this might cause issues when trying to share folder in your home directory')
