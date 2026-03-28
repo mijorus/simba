@@ -65,6 +65,23 @@
         </child>
         <child>
           <object class="AdwPreferencesGroup">
+            <property name="title" translatable="yes">Security</property>
+            <child>
+              <object class="AdwSwitchRow" id="allow_only_toggle">
+                <property name="sensitive">false</property>
+                <property name="title" translatable="true">Restrict access to specific networks.</property>
+              </object>
+            </child>
+            <child>
+              <object class="AdwExpanderRow" id="allow_networks">
+                <property name="title" translatable="true">Allowed networks</property>
+                <property name="sensitive">false</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwPreferencesGroup">
             <property name="title" translatable="yes">Debugging</property>
             <child>
               <object class="AdwEntryRow" id="logfile_row">

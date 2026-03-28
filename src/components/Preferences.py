@@ -2,6 +2,7 @@ import os
 import gi
 
 from ..lib.SambaConfig import SambaShare, SambaConfig
+from ..lib.HostSystem import HostSystem, NetworkName
 from .FolderShare import FolderShare
 from .EditShareDialog import EditShareDialog
 
@@ -23,6 +24,8 @@ class Preferences(Gtk.Box):
     logfile_row = Gtk.Template.Child()
     usershare_max_shares_row = Gtk.Template.Child()
     usershare_enabled = Gtk.Template.Child()
+    allow_only_toggle = Gtk.Template.Child()
+    allow_networks = Gtk.Template.Child()
     save_button = Gtk.Template.Child()
 
     def __init__(self, manager: SambaConfig, **kwargs):
@@ -36,6 +39,20 @@ class Preferences(Gtk.Box):
 
         self.usershare_max_shares_row.set_sensitive(self.usershare_enabled.get_active())
         self.usershare_enabled.connect('notify::active', lambda w, _: self.usershare_max_shares_row.set_sensitive(w.get_active()))
+        self.allow_networks_rows: list[tuple[NetworkName, Adw.SwitchRow,]] = []
+
+        if HostSystem.has_network_manager():
+            networks = HostSystem.list_saved_networks()
+
+            for n in networks:
+                row = Adw.SwitchRow(title=n.name, subtitle=n._type.capitalize())
+                self.allow_networks.add_row(row)
+                self.allow_networks_rows.append((n, row))
+
+            self.allow_only_toggle.set_sensitive(True)
+            self.allow_only_toggle.set_active(self.manager.has_toggle_script())
+            self.allow_networks.set_sensitive(self.allow_only_toggle.get_active())
+            self.allow_only_toggle.connect('notify::active', lambda w, _: self.allow_networks.set_sensitive(w.get_active()))
 
         self.save_button.connect('clicked', self.on_save_clicked)
 
@@ -52,5 +69,12 @@ class Preferences(Gtk.Box):
                 del section['usershare path']
             if 'usershare max shares' in section:
                 del section['usershare max shares']
+
+        # if HostSystem.has_network_manager():
+        #     if self.allow_only_toggle.get_active():
+        #         active_n = filter(lambda n: n[1].get_active(), self.allow_networks_rows)
+        #         self.manager.create_nm_dispatcher_script(list(active_n))
+        #     else:
+
 
         self.manager.save()

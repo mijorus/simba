@@ -17,7 +17,7 @@ from dataclasses import dataclass, field
 
 from .ShellScript import ShellScript
 from . import terminal, utils
-from gi.repository import GLib  # noqa
+from gi.repository import GLib, Gio  # noqa
 
 
 @dataclass
@@ -54,6 +54,7 @@ class SambaUser:
     comment: str
 
 class SambaConfig():
+    NM_TOGGLE_SCRIPT = '/etc/NetworkManager/dispatcher.d/90-samba-toggle.sh'
     DEFAULT_SECTION = 'global'
     DEFAULT_GLOBAL_SECTION = {
         'workgroup': 'WORKGROUP',
@@ -174,8 +175,8 @@ class SambaConfig():
             resp = terminal.host_sh(['firewall-cmd', '--list-services'])
             if 'samba' not in resp.split(' '):
                 _warnings.append(WarningEntry(
-                    title=_('SELinux'),
-                    description=_('SELinux policy "samba_enable_home_dirs" is off, this might cause issues when trying to share folder in your home directory')
+                    title=_('Firewall'),
+                    description=_('A firewall rule might be blocking SAMBA on this computer')
                 ))
         except Exception as e:
             pass
@@ -333,6 +334,51 @@ class SambaConfig():
             shares.append(share)
 
         return shares
+
+    def create_nm_dispatcher_script(self, target_networks):
+        nm_script = utils.get_asset('/it/mijorus/simba/assets/90-samba-toggle.sh')
+        bash_location = terminal.host_sh(['which', 'bash'])
+        target_networks_names = ', '.join([f'"{shlex.quote(t.name)}"' for t in target_networks])
+        target_networks_val = shlex.join([f'"{shlex.quote(t.uuid)}"' for t in target_networks])
+
+        nm_script.replace('#!/bin/bash', f'#!{bash_location}', 1)
+        nm_script.replace('# Network names:', f'# Network names: {target_networks_names}', 1)
+        nm_script.replace('TARGET_NETWORKS=()', target_networks_val, 1)
+        nm_script.replace('SAMBA_SERVICE=""', self.service_name, 1)
+
+        scr = ShellScript(filename=self.NM_TOGGLE_SCRIPT, content=nm_script)
+        exec_scr = ShellScript(filename='create_nm_dispatcher.sh', 
+                    content="""
+                        set -e
+                        if [ -d "/etc/NetworkManager/dispatcher.d" ]; then
+                            mv $source $dest
+                            chown root:root $desk
+                        fi
+                    """, source=scr.path, dest=self.NM_TOGGLE_SCRIPT)
+        
+        exec_scr.root_host_execute()
+        scr.delete()
+
+    def remove_nm_script(self):
+        pass
+
+    def get_nm_allowed_networks(self):
+        try:
+            trg = terminal.host_sh(['grep', '-oP', "'TARGET_NETWORKS=\\(\\K[^)]*'", self.NM_TOGGLE_SCRIPT])
+        except Exception as e:
+            return []
+        
+        uuids = [f.replace('"', '') for f in trg.split(' ')]
+        return uuids
+    
+    def has_toggle_script(self):
+        try:
+            terminal.host_sh(["test", '-f', self.NM_TOGGLE_SCRIPT])
+        except Exception as e:
+            return False
+        
+        return True
+
 
     @staticmethod
     def create_user(user, passwd):

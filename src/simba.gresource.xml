@@ -8,5 +8,6 @@
         <file>ui/sharedfolders.ui</file>
         <file>ui/userslist.ui</file>
         <file>assets/style.css</file>
+        <file>assets/90-samba-toggle.sh</file>
     </gresource>
 </gresources>

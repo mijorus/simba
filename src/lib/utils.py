@@ -7,7 +7,7 @@ import logging
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 
-from gi.repository import Gtk, Adw  # noqa
+from gi.repository import Gtk, Adw, Gio  # noqa
 
 def get_random_md5():
     # 1. Generate a random string of bytes (16 bytes = 128 bits of entropy)
@@ -24,3 +24,13 @@ def mapped_path(path):
         return flatpak_prefix + path
     
     return path
+
+def get_asset(name: str):
+    data = Gio.resources_lookup_data(
+        name,
+        Gio.ResourceLookupFlags.NONE
+    )
+    raw = data.get_data()
+    if raw is None:
+        raise RuntimeError('Failed to load 90-samba-toggle.sh from resources')
+    return raw.decode('utf-8')

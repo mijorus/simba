@@ -26,6 +26,12 @@ class UserAccount:
     has_sambashare_group: bool
     is_deletable: bool=False
 
+@dataclass(frozen=True)
+class NetworkName:
+    name: str
+    uuid: str
+    _type: str
+
 class HostSystem():
     SAMBA_GROUP = 'sambashare'
     MANAGE_USER_PREFIX = 'samba user'
@@ -172,3 +178,27 @@ class HostSystem():
             pdbedit --delete $user
             userdel $user
         """, user=user.username).root_host_execute()
+
+    @staticmethod
+    def has_network_manager():
+        try:
+            terminal.host_sh(['which', 'nmcli'])
+        except Exception as e:
+            return False
+        
+        return True
+    
+    @staticmethod
+    def list_saved_networks() -> list[NetworkName]:
+        result = terminal.host_sh(['nmcli', '--get-values=UUID,NAME,TYPE', '--colors=no', 'connection', 'show'])
+        items = []
+
+        for r in result.split('\n'):
+            uuid, name, _type = r.split(':')
+            if _type == 'loopback':
+                continue
+
+            n = NetworkName(name=name, uuid=uuid, _type=_type)
+            items.append(n)
+
+        return items
