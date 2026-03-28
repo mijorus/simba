@@ -43,9 +43,12 @@ class Preferences(Gtk.Box):
 
         if HostSystem.has_network_manager():
             networks = HostSystem.list_saved_networks()
+            enabled_networks = self.manager.get_nm_allowed_networks()
+            print(enabled_networks)
 
             for n in networks:
                 row = Adw.SwitchRow(title=n.name, subtitle=n._type.capitalize())
+                row.set_active(n.uuid in enabled_networks)
                 self.allow_networks.add_row(row)
                 self.allow_networks_rows.append((n, row))
 
@@ -70,11 +73,14 @@ class Preferences(Gtk.Box):
             if 'usershare max shares' in section:
                 del section['usershare max shares']
 
-        # if HostSystem.has_network_manager():
-        #     if self.allow_only_toggle.get_active():
-        #         active_n = filter(lambda n: n[1].get_active(), self.allow_networks_rows)
-        #         self.manager.create_nm_dispatcher_script(list(active_n))
-        #     else:
+        allow_networks = None
+        if HostSystem.has_network_manager():
+            if self.allow_only_toggle.get_active():
+                allow_networks = []
+                for n in self.allow_networks_rows:
+                    if n[1].get_active():
+                        allow_networks.append(n[0])
 
-
-        self.manager.save()
+        self.manager.save(
+            allowed_networks=allow_networks
+        )
