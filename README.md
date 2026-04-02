@@ -3,6 +3,8 @@
 Work in progress SAMBA manager UI for linux.
 
 
+<p align="center"><img src="docs/image.png" alt="alt text" style="border-radius: 12px;" /></p>
+
 ## Build and run
 
 ```sh
