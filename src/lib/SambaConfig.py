@@ -57,6 +57,7 @@ class SambaUser:
 class SambaConfig():
     NM_TOGGLE_SCRIPT = '/etc/NetworkManager/dispatcher.d/90-samba-toggle.sh'
     DEFAULT_SECTION = 'global'
+    PRINTERS_SECTION = 'printers'
     DEFAULT_GLOBAL_SECTION = {
         'workgroup': 'WORKGROUP',
         'netbios name': '',
@@ -342,6 +343,14 @@ class SambaConfig():
 
         self.create_section(share.name, section_content)
 
+    def is_printing_supported(self):
+        try:
+            terminal.host_sh(['systemctl', 'status', 'cups.service'])
+        except Exception as e:
+            return False
+        
+        return True
+
     def _bool_value(self, val: bool):
         return 'yes' if val else 'no'
 
@@ -399,6 +408,32 @@ class SambaConfig():
             return False
         
         return True
+
+    def set_print_service(self, enabled, restricted_users=None):
+        if enabled:
+            self.data[self.DEFAULT_SECTION]['load printers'] = self._bool_value(True)
+            self.data[self.DEFAULT_SECTION]['printing'] = 'cups'  # only CUPS service is supported for now
+            self.data[self.DEFAULT_SECTION]['printcap name'] = 'cups'
+
+            config = {
+                'comment': 'All printers',
+                'printable': self._bool_value(True),
+                'path': '/var/spool/samba',
+            }
+
+            self.create_section(self.PRINTERS_SECTION, config)
+        else:
+
+            for k in ['printing', 'printcap name']:
+                if k in self.data[self.DEFAULT_SECTION]:
+                    del self.data[self.DEFAULT_SECTION][k]
+
+            self.data[self.DEFAULT_SECTION]['load printers'] = self._bool_value(False)
+
+            if self.data[self.PRINTERS_SECTION]:
+                del self.data[self.PRINTERS_SECTION]
+
+            
 
     @staticmethod
     def create_user(user, passwd):
