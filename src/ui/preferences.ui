@@ -70,6 +70,7 @@
               <object class="AdwSwitchRow" id="allow_only_toggle">
                 <property name="sensitive">false</property>
                 <property name="title" translatable="true">Restrict access to specific networks.</property>
+                <property name="subtitle" translatable="true">This will create a new dispatcher for the network manager</property>
               </object>
             </child>
             <child>

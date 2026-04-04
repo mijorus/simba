@@ -207,7 +207,7 @@ class SambaConfig():
         self.data.clear(    )
         self.data['global'] = self.DEFAULT_GLOBAL_SECTION
 
-    def save(self):
+    def save(self, allowed_networks=None):
         text_content = self._get_text_content()
 
         random_string = utils.get_random_md5()
@@ -221,18 +221,48 @@ class SambaConfig():
 
         # check file validity
         terminal.host_sh(['testparm', '--suppress-prompt', testfile_path])
+        nm_dispactech_script = None
+        nm_dispactech_script_path = ''
+
+        if allowed_networks != None:
+            nm_dispactech_script = self.create_nm_dispatcher_script(target_networks=allowed_networks)
+            nm_dispactech_script_path = nm_dispactech_script.path
 
         save_script = ShellScript(
             filename='save_samba_config.sh',
             content="""
                 set -e
+
+                ENABLE_NM_D="$enable_nm_d"
+
                 cp $location $location_old
                 cp $testfile_path $location
+
+                if command -v nmcli &> /dev/null; then
+                    if [[ $$ENABLE_NM_D == "1" ]]; then
+                        if [ -d "/etc/NetworkManager/dispatcher.d" ]; then
+                            mv $nm_dispactech_script_path $nm_dispactech_script_dest
+
+                            chmod 744 $nm_dispactech_script_dest
+                            chown root:root $nm_dispactech_script_dest
+
+                            # Execute this bash script like there was a network change
+                            bash $nm_dispactech_script_dest 0 up
+                            exit 0
+                        fi
+                    else
+                        rm -f $nm_dispactech_script_dest
+                    fi
+                fi
+
                 systemctl restart $service
             """,
             testfile_path=testfile_path,
             service=self.service_name,
             location=self.sys_config_file_location,
+            enable_nm_d=('1' if allowed_networks != None else '0'),
+            nm_dispactech_script_path=nm_dispactech_script_path,
+            nm_dispactech_script_dest=self.NM_TOGGLE_SCRIPT,
             location_old=f'{self.sys_config_file_location}.simba.old'
         )
 
@@ -338,33 +368,23 @@ class SambaConfig():
     def create_nm_dispatcher_script(self, target_networks):
         nm_script = utils.get_asset('/it/mijorus/simba/assets/90-samba-toggle.sh')
         bash_location = terminal.host_sh(['which', 'bash'])
-        target_networks_names = ', '.join([f'"{shlex.quote(t.name)}"' for t in target_networks])
-        target_networks_val = shlex.join([f'"{shlex.quote(t.uuid)}"' for t in target_networks])
+        target_networks_names = ', '.join([f'"{t.name}"' for t in target_networks])
+        target_networks_val = ' '.join([f'"{t.uuid}"' for t in target_networks])
 
-        nm_script.replace('#!/bin/bash', f'#!{bash_location}', 1)
-        nm_script.replace('# Network names:', f'# Network names: {target_networks_names}', 1)
-        nm_script.replace('TARGET_NETWORKS=()', target_networks_val, 1)
-        nm_script.replace('SAMBA_SERVICE=""', self.service_name, 1)
+        nm_script = nm_script.replace('#!/bin/bash', f'#!{bash_location}', 1)
+        nm_script = nm_script.replace('# Network names:', f'# Network names: {target_networks_names}', 1)
+        nm_script = nm_script.replace('TARGET_NETWORKS=()', f'TARGET_NETWORKS=({target_networks_val})', 1)
+        nm_script = nm_script.replace('SAMBA_SERVICE=""', f'SAMBA_SERVICE="{self.service_name}"', 1)
 
-        scr = ShellScript(filename=self.NM_TOGGLE_SCRIPT, content=nm_script)
-        exec_scr = ShellScript(filename='create_nm_dispatcher.sh', 
-                    content="""
-                        set -e
-                        if [ -d "/etc/NetworkManager/dispatcher.d" ]; then
-                            mv $source $dest
-                            chown root:root $desk
-                        fi
-                    """, source=scr.path, dest=self.NM_TOGGLE_SCRIPT)
-        
-        exec_scr.root_host_execute()
-        scr.delete()
+        scr = ShellScript(filename='nm_dispatcher', content=nm_script)
+        return scr
 
     def remove_nm_script(self):
         pass
 
     def get_nm_allowed_networks(self):
         try:
-            trg = terminal.host_sh(['grep', '-oP', "'TARGET_NETWORKS=\\(\\K[^)]*'", self.NM_TOGGLE_SCRIPT])
+            trg = terminal.host_sh(['grep', '-oP', "TARGET_NETWORKS=\\(\\K[^)]*", self.NM_TOGGLE_SCRIPT])
         except Exception as e:
             return []
         

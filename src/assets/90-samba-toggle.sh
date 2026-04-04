@@ -14,7 +14,7 @@ TARGET_NETWORKS=()
 NMCLI_OUTPUT=$(nmcli --get-values=UUID --colors=no connection show --active)
 CURRENT_NETWORK_NAMES=()
 
-IS_TARGET_NETWORK=false
+IS_TARGET_NETWORK="0"
 
 # Function to check if any current network name is in the target list
 read -r CURRENT_NETWORK_NAMES <<< "$NMCLI_OUTPUT"
@@ -22,7 +22,7 @@ read -r CURRENT_NETWORK_NAMES <<< "$NMCLI_OUTPUT"
 for target in "${TARGET_NETWORKS[@]}"; do
     for curr_network in "${CURRENT_NETWORK_NAMES[@]}"; do
         if [ "$curr_network" = "$target" ]; then
-            IS_TARGET_NETWORK=true
+            IS_TARGET_NETWORK="1"
             break
         fi
     done
@@ -30,7 +30,7 @@ done
 
 case "$ACTION" in
     up|down)
-        if $IS_TARGET_NETWORK ; then
+        if [[ $IS_TARGET_NETWORK == "1" ]] ; then
             echo "Connected to a trusted network ($CURRENT_NETWORK_NAMES). Starting Samba..."
             systemctl start $SAMBA_SERVICE
         else

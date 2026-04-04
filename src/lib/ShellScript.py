@@ -9,7 +9,8 @@ from . import terminal, utils
 
 class ShellScript():
     def __init__(self, filename, content: str='', **kwargs):
-        path = os.path.join('/tmp', APP_ID, RUN_ID, filename)
+        # GLib.get_user_cache_dir()
+        path = os.path.join(GLib.get_user_cache_dir(), filename)
         self.path = path
 
         content = textwrap.dedent(content)
@@ -18,9 +19,12 @@ class ShellScript():
         for k in kwargs:
             kwargs[k] = shlex.quote(kwargs[k])
 
-        r = t.substitute(**kwargs)
-        r = shlex.quote(r)
-        terminal.host_sh(['bash', '-c', f'echo -n {r} > {self.path}'])
+        r = t.safe_substitute(**kwargs)
+        # r = shlex.quote(r)
+
+        with open(path, 'w+') as f:
+            f.write(r)
+        # terminal.host_sh(['bash', '-c', f'echo -n {r} > {self.path}'])
 
     def host_execute(self, delete_after=True, root=False):
         p = shlex.quote(self.path)
@@ -34,8 +38,8 @@ class ShellScript():
         except Exception as e:
             err = e
 
-        if delete_after:
-            self.delete()
+        # if delete_after:
+        #     self.delete()
 
         if err:
             raise err
