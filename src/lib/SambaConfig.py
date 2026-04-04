@@ -14,6 +14,7 @@ import configparser
 import logging
 from textwrap import dedent
 from dataclasses import dataclass, field
+from typing import Optional, Callable
 
 from .ShellScript import ShellScript
 from . import terminal, utils
@@ -123,7 +124,7 @@ class SambaConfig():
                 pass
 
         if os.path.exists(self.config_file_location):
-            self._parse()
+            self.reload()
 
     @staticmethod
     def get_samba_version():
@@ -272,7 +273,7 @@ class SambaConfig():
             os.remove(testfile_path)
 
         save_script.delete()
-        self._parse()
+        self.reload()
 
     def get_md5(self, file_path=None, content=''):
         if (not content) and (not file_path):
@@ -399,7 +400,6 @@ class SambaConfig():
         
         return True
 
-
     @staticmethod
     def create_user(user, passwd):
         pass_str = f'{passwd}\\n{passwd}\\n'
@@ -431,7 +431,6 @@ class SambaConfig():
 
         return output
 
-
     def _get_text_content(self):
         # 1. Create the string buffer
         string_stream = io.StringIO()
@@ -443,9 +442,10 @@ class SambaConfig():
         config_string = string_stream.getvalue()
         return config_string
 
-    def _parse(self):
+    def reload(self):
         """Parse a smb file"""
         with open(self.config_file_location, 'r') as f:
             self._config_file_content = f.read()
 
-        self.data.read(self.config_file_location)
+        self.data.clear()
+        self.data.read(self.config_file_location)        

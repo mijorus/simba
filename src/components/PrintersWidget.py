@@ -34,6 +34,9 @@ class PrintersWidget(Gtk.Box):
         self.auth_banner.connect('button-clicked', self._on_auth_banner_clicked)
         self.add_user_button.connect('clicked', self._on_add_user_clicked)
 
+    def reload(self):
+        pass
+
     def _on_enable_service_toggled(self, widget: Adw.SwitchRow):
         active = widget.get_active()
 

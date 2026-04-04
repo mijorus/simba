@@ -69,7 +69,7 @@ class MainWindow(Adw.Window):
                 row = Adw.ActionRow(title=label, activatable=True, name=name)
                 row.add_prefix(Gtk.Image.new_from_icon_name(icon))
                 self.sidebar_list.append(row)
-            self.sidebar_list.connect('row-activated', self._on_sidebar_row_activated)
+            self.sidebar_list.connect('row-activated', self.on_sidebar_row_activated)
 
             if self.config_manager.is_config_supported():
                 self.view_stack.set_visible_child(self.shared_folders_widget)
@@ -107,11 +107,18 @@ class MainWindow(Adw.Window):
             ))
             self.set_content(toolbar_view)
 
+    def on_sidebar_row_activated(self, listbox, row):
+        if not self.view_stack:
+            return
 
-    def _on_sidebar_row_activated(self, listbox, row):
         child = self.view_stack.get_child_by_name(row.get_name())
+
         if child:
             self.view_stack.set_visible_child(child)
+            
+            if hasattr(child, 'reload') and self.config_manager:
+                self.config_manager.reload()
+                child.reload() # type: ignore
 
     def refresh_valid_config(self):
         if self.config_manager and self.view_stack and self.sidebar_list:
