@@ -6,6 +6,7 @@ from .components.SharedFolders import SharedFolders
 from .components.UnsupportedConfig import UnsupportedConfig
 from .components.Preferences import Preferences
 from .components.UsersList import UsersList
+from .components.PrintersWidget import PrintersWidget
 from .components.Warnings import Warnings
 
 gi.require_version('Gtk', '4.0')
@@ -39,12 +40,13 @@ class MainWindow(Adw.Window):
             self.users_list = UsersList(self.config_manager)
             self.shared_folders_widget = SharedFolders(self.config_manager)
             self.preferences_widget = Preferences(self.config_manager)
+            self.printers_widget = PrintersWidget(self.config_manager)
             self.warnings_widget = Warnings(self.config_manager)
 
             pages = [
                 (self.shared_folders_widget, 'shared_folders', _('Shared folders'), 'sb-folder-remote'),
                 (self.users_list, 'users_list', _('Users list'), 'sb-people'),
-                (Gtk.Label.new('printers'), 'printers', _('Printers and devices'), 'sb-printer2'),
+                (self.printers_widget, 'printers', _('Printers and devices'), 'sb-printer2'),
                 (self.preferences_widget, 'settings', _('Preferences'), 'sb-settings'),
             ]
 
