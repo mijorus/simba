@@ -14,6 +14,7 @@ import configparser
 import logging
 from textwrap import dedent
 from dataclasses import dataclass, field
+from typing import Optional, Callable
 
 from .ShellScript import ShellScript
 from . import terminal, utils
@@ -56,6 +57,7 @@ class SambaUser:
 class SambaConfig():
     NM_TOGGLE_SCRIPT = '/etc/NetworkManager/dispatcher.d/90-samba-toggle.sh'
     DEFAULT_SECTION = 'global'
+    PRINTERS_SECTION = 'printers'
     DEFAULT_GLOBAL_SECTION = {
         'workgroup': 'WORKGROUP',
         'netbios name': '',
@@ -123,7 +125,7 @@ class SambaConfig():
                 pass
 
         if os.path.exists(self.config_file_location):
-            self._parse()
+            self.reload()
 
     @staticmethod
     def get_samba_version():
@@ -272,7 +274,7 @@ class SambaConfig():
             os.remove(testfile_path)
 
         save_script.delete()
-        self._parse()
+        self.reload()
 
     def get_md5(self, file_path=None, content=''):
         if (not content) and (not file_path):
@@ -341,6 +343,14 @@ class SambaConfig():
 
         self.create_section(share.name, section_content)
 
+    def is_printing_supported(self):
+        try:
+            terminal.host_sh(['systemctl', 'status', 'cups.service'])
+        except Exception as e:
+            return False
+        
+        return True
+
     def _bool_value(self, val: bool):
         return 'yes' if val else 'no'
 
@@ -399,6 +409,31 @@ class SambaConfig():
         
         return True
 
+    def set_print_service(self, enabled, restricted_users=None):
+        if enabled:
+            self.data[self.DEFAULT_SECTION]['load printers'] = self._bool_value(True)
+            self.data[self.DEFAULT_SECTION]['printing'] = 'cups'  # only CUPS service is supported for now
+            self.data[self.DEFAULT_SECTION]['printcap name'] = 'cups'
+
+            config = {
+                'comment': 'All printers',
+                'printable': self._bool_value(True),
+                'path': '/var/spool/samba',
+            }
+
+            self.create_section(self.PRINTERS_SECTION, config)
+        else:
+
+            for k in ['printing', 'printcap name']:
+                if k in self.data[self.DEFAULT_SECTION]:
+                    del self.data[self.DEFAULT_SECTION][k]
+
+            self.data[self.DEFAULT_SECTION]['load printers'] = self._bool_value(False)
+
+            if self.data[self.PRINTERS_SECTION]:
+                del self.data[self.PRINTERS_SECTION]
+
+            
 
     @staticmethod
     def create_user(user, passwd):
@@ -431,7 +466,6 @@ class SambaConfig():
 
         return output
 
-
     def _get_text_content(self):
         # 1. Create the string buffer
         string_stream = io.StringIO()
@@ -443,9 +477,10 @@ class SambaConfig():
         config_string = string_stream.getvalue()
         return config_string
 
-    def _parse(self):
+    def reload(self):
         """Parse a smb file"""
         with open(self.config_file_location, 'r') as f:
             self._config_file_content = f.read()
 
-        self.data.read(self.config_file_location)
+        self.data.clear()
+        self.data.read(self.config_file_location)        

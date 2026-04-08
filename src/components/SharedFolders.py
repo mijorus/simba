@@ -31,9 +31,8 @@ class SharedFolders(Gtk.Box):
         self.add_button.connect('clicked', self.on_add_btn_clicked)
         self.save_button.connect('clicked', self.on_save_btn_clicked)
         self.save_button.set_sensitive(False)
-        self.reload_shares()
 
-    def reload_shares(self):
+    def reload(self):
         if not self.manager.is_config_supported():
             return
 
@@ -55,7 +54,7 @@ class SharedFolders(Gtk.Box):
     def on_folder_share_save(self, obj, share: SambaShare):
         self.manager.delete_share(share)
         self.manager.create_share(share)
-        self.reload_shares()
+        self.reload()
         self.save_button.set_sensitive(True)
 
     def on_save_btn_clicked(self, widget: Gtk.Button):
@@ -74,7 +73,7 @@ class SharedFolders(Gtk.Box):
     def on_add_share_save(self, obj, share: SambaShare):
         self.manager.create_share(share)
         self.save_button.set_sensitive(True)
-        self.reload_shares()
+        self.reload()
 
     def on_add_btn_clicked(self, widget: Gtk.Button):
         top_level = Gtk.Window.get_toplevels()[0]

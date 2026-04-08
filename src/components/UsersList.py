@@ -38,6 +38,9 @@ class UsersList(Gtk.Box):
         self.sys_users: list[UserAccount] = []
         self.list_widget.set_sensitive(False)
 
+    def reload(self):
+        pass
+
     def refresh_users(self):
         for w in self.user_widgets:
             self.list_widget.remove(w)

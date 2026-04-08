@@ -32,5 +32,5 @@ def get_asset(name: str):
     )
     raw = data.get_data()
     if raw is None:
-        raise RuntimeError('Failed to load 90-samba-toggle.sh from resources')
+        raise RuntimeError(f'Failed to load {name} from resources')
     return raw.decode('utf-8')

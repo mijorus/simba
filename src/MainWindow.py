@@ -6,6 +6,7 @@ from .components.SharedFolders import SharedFolders
 from .components.UnsupportedConfig import UnsupportedConfig
 from .components.Preferences import Preferences
 from .components.UsersList import UsersList
+from .components.PrintersWidget import PrintersWidget
 from .components.Warnings import Warnings
 
 gi.require_version('Gtk', '4.0')
@@ -39,12 +40,13 @@ class MainWindow(Adw.Window):
             self.users_list = UsersList(self.config_manager)
             self.shared_folders_widget = SharedFolders(self.config_manager)
             self.preferences_widget = Preferences(self.config_manager)
+            self.printers_widget = PrintersWidget(self.config_manager)
             self.warnings_widget = Warnings(self.config_manager)
 
             pages = [
                 (self.shared_folders_widget, 'shared_folders', _('Shared folders'), 'sb-folder-remote'),
                 (self.users_list, 'users_list', _('Users list'), 'sb-people'),
-                (Gtk.Label.new('printers'), 'printers', _('Printers and devices'), 'sb-printer2'),
+                (self.printers_widget, 'printers', _('Printers and devices'), 'sb-printer2'),
                 (self.preferences_widget, 'settings', _('Preferences'), 'sb-settings'),
             ]
 
@@ -67,7 +69,7 @@ class MainWindow(Adw.Window):
                 row = Adw.ActionRow(title=label, activatable=True, name=name)
                 row.add_prefix(Gtk.Image.new_from_icon_name(icon))
                 self.sidebar_list.append(row)
-            self.sidebar_list.connect('row-activated', self._on_sidebar_row_activated)
+            self.sidebar_list.connect('row-activated', self.on_sidebar_row_activated)
 
             if self.config_manager.is_config_supported():
                 self.view_stack.set_visible_child(self.shared_folders_widget)
@@ -105,11 +107,18 @@ class MainWindow(Adw.Window):
             ))
             self.set_content(toolbar_view)
 
+    def on_sidebar_row_activated(self, listbox, row):
+        if not self.view_stack:
+            return
 
-    def _on_sidebar_row_activated(self, listbox, row):
         child = self.view_stack.get_child_by_name(row.get_name())
+
         if child:
             self.view_stack.set_visible_child(child)
+            
+            if hasattr(child, 'reload') and self.config_manager:
+                self.config_manager.reload()
+                child.reload() # type: ignore
 
     def refresh_valid_config(self):
         if self.config_manager and self.view_stack and self.sidebar_list:

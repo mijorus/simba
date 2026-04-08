@@ -31,20 +31,42 @@ class Preferences(Gtk.Box):
     def __init__(self, manager: SambaConfig, **kwargs):
         super().__init__(**kwargs)
         self.manager = manager
+        self.allow_networks_rows: list[tuple[NetworkName, Adw.SwitchRow,]] = []
+        self._loading = False
+
+        self.usershare_enabled.connect('notify::active', lambda w, _: self.usershare_max_shares_row.set_sensitive(w.get_active()))
+        self.allow_only_toggle.connect('notify::active', lambda w, _: self.allow_networks.set_sensitive(w.get_active()))
+        self.save_button.connect('clicked', self.on_save_clicked)
+
+        self.workgroup_row.connect('notify::text', self.on_form_value_change)
+        self.netbios_row.connect('notify::text', self.on_form_value_change)
+        self.logfile_row.connect('notify::text', self.on_form_value_change)
+        self.usershare_max_shares_row.connect('notify::value', self.on_form_value_change)
+        self.usershare_enabled.connect('notify::active', self.on_form_value_change)
+
+        self.save_button.set_sensitive(True)
+
+    def on_form_value_change(self, *_):
+        if not self._loading:
+            self.save_button.set_sensitive(True)
+
+    def reload(self):
+        self._loading = True
+        self.save_button.set_sensitive(False)
         self.workgroup_row.set_text(self.manager.data[SambaConfig.DEFAULT_SECTION].get('workgroup', ''))
         self.netbios_row.set_text(self.manager.data[SambaConfig.DEFAULT_SECTION].get('netbios name', ''))
         self.logfile_row.set_text(self.manager.data[SambaConfig.DEFAULT_SECTION].get('log file', ''))
         self.usershare_max_shares_row.set_text(self.manager.data[SambaConfig.DEFAULT_SECTION].get('usershare max shares', '1'))
         self.usershare_enabled.set_active(self.manager.data.has_option(SambaConfig.DEFAULT_SECTION, 'usershare path'))
-
         self.usershare_max_shares_row.set_sensitive(self.usershare_enabled.get_active())
-        self.usershare_enabled.connect('notify::active', lambda w, _: self.usershare_max_shares_row.set_sensitive(w.get_active()))
-        self.allow_networks_rows: list[tuple[NetworkName, Adw.SwitchRow,]] = []
+
+        self.allow_networks_rows = []
 
         if HostSystem.has_network_manager():
             networks = HostSystem.list_saved_networks()
-            enabled_networks = self.manager.get_nm_allowed_networks()
-            print(enabled_networks)
+            enabled_networks = []
+            if self.manager.has_toggle_script():
+                enabled_networks = self.manager.get_nm_allowed_networks()
 
             for n in networks:
                 row = Adw.SwitchRow(title=n.name, subtitle=n._type.capitalize())
@@ -55,9 +77,9 @@ class Preferences(Gtk.Box):
             self.allow_only_toggle.set_sensitive(True)
             self.allow_only_toggle.set_active(self.manager.has_toggle_script())
             self.allow_networks.set_sensitive(self.allow_only_toggle.get_active())
-            self.allow_only_toggle.connect('notify::active', lambda w, _: self.allow_networks.set_sensitive(w.get_active()))
 
-        self.save_button.connect('clicked', self.on_save_clicked)
+        self._loading = False
+
 
     def on_save_clicked(self, *args):
         section = self.manager.data[self.manager.DEFAULT_SECTION]
