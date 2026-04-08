@@ -1,6 +1,7 @@
 import os
 import gi
 
+from time import sleep
 from .lib.SambaConfig import SambaConfig
 from .components.SharedFolders import SharedFolders
 from .components.UnsupportedConfig import UnsupportedConfig
@@ -8,6 +9,7 @@ from .components.Preferences import Preferences
 from .components.UsersList import UsersList
 from .components.PrintersWidget import PrintersWidget
 from .components.Warnings import Warnings
+from .lib import async_utils
 
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
@@ -79,7 +81,24 @@ class MainWindow(Adw.Window):
                 self.sidebar_list.set_sensitive(False)
                 self.unsuppoted_config.connect('fix_button_clicked', self.on_fix_btn_clicked)
 
-            sidebar_toolbar = Adw.ToolbarView(content=self.sidebar_list)
+            self.service_status_dot = Gtk.Label(label='●', css_classes=['service-status-dot'])
+            self.service_status_label = Gtk.Label(label='', xalign=0)
+
+            status_box = Gtk.Box(
+                orientation=Gtk.Orientation.HORIZONTAL,
+                spacing=8,
+                margin_start=12, margin_end=12,
+                margin_top=10, margin_bottom=10,
+            )
+            status_box.append(self.service_status_dot)
+            status_box.append(self.service_status_label)
+
+            sidebar_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+            sidebar_box.append(self.sidebar_list)
+            sidebar_box.append(Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL))
+            sidebar_box.append(status_box)
+
+            sidebar_toolbar = Adw.ToolbarView(content=sidebar_box)
             sidebar_toolbar.add_top_bar(Adw.HeaderBar(
                 title_widget=Gtk.Label.new(window_title)
             ))
@@ -97,6 +116,7 @@ class MainWindow(Adw.Window):
                 ),
             )
 
+            self.start_sambad_check()
             self.set_content(split_view)
         else:
             toolbar_view = Adw.ToolbarView(
@@ -119,6 +139,22 @@ class MainWindow(Adw.Window):
             if hasattr(child, 'reload') and self.config_manager:
                 self.config_manager.reload()
                 child.reload() # type: ignore
+
+    @async_utils._async
+    def start_sambad_check(self):
+        while self.config_manager:
+            self.refresh_sambad_status()
+            sleep(3)
+
+    @async_utils.idle
+    def refresh_sambad_status(self):
+        if self.config_manager:
+            if self.config_manager.is_service_active():
+                self.service_status_label.set_text(_('Service is running'))
+                self.service_status_dot.set_css_classes(['service-status-dot', 'active'])
+            else:
+                self.service_status_label.set_text(_('Service is not running'))
+                self.service_status_dot.set_css_classes(['service-status-dot'])
 
     def refresh_valid_config(self):
         if self.config_manager and self.view_stack and self.sidebar_list:

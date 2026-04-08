@@ -329,13 +329,13 @@ class SambaConfig():
         
         section_content = {
             'path': share.share_path,
-            'writeable': self._bool_value(share.writeable),
-            'public': self._bool_value(share.public),
+            'writeable': self.bool_value_to_str(share.writeable),
+            'public': self.bool_value_to_str(share.public),
             'comment': share.comment,
 
             # MacOS stuff
             'veto files': '/.DS_Store/._.*/',
-            'delete veto files': self._bool_value(True)
+            'delete veto files': self.bool_value_to_str(True)
         }
 
         if share.force_user:
@@ -351,7 +351,7 @@ class SambaConfig():
         
         return True
 
-    def _bool_value(self, val: bool):
+    def bool_value_to_str(self, val: bool):
         return 'yes' if val else 'no'
 
     def list_shares(self) -> list[SambaShare]:
@@ -409,31 +409,41 @@ class SambaConfig():
         
         return True
 
-    def set_print_service(self, enabled, restricted_users=None):
+    def set_print_service(self, enabled, restricted_users: Optional[list[SambaUser]]=None):
         if enabled:
-            self.data[self.DEFAULT_SECTION]['load printers'] = self._bool_value(True)
+            self.data[self.DEFAULT_SECTION]['load printers'] = self.bool_value_to_str(True)
             self.data[self.DEFAULT_SECTION]['printing'] = 'cups'  # only CUPS service is supported for now
             self.data[self.DEFAULT_SECTION]['printcap name'] = 'cups'
 
             config = {
                 'comment': 'All printers',
-                'printable': self._bool_value(True),
+                'printable': self.bool_value_to_str(True),
                 'path': '/var/spool/samba',
             }
 
+            if restricted_users is None:
+                config['guest ok'] = self.bool_value_to_str(True)
+            else:
+                config['valid users'] = ', '.join([el.user for el in restricted_users])
+
             self.create_section(self.PRINTERS_SECTION, config)
         else:
-
             for k in ['printing', 'printcap name']:
                 if k in self.data[self.DEFAULT_SECTION]:
                     del self.data[self.DEFAULT_SECTION][k]
 
-            self.data[self.DEFAULT_SECTION]['load printers'] = self._bool_value(False)
+            self.data[self.DEFAULT_SECTION]['load printers'] = self.bool_value_to_str(False)
 
             if self.data[self.PRINTERS_SECTION]:
                 del self.data[self.PRINTERS_SECTION]
 
-            
+    def is_service_active(self):
+        try:
+            terminal.host_sh(['systemctl', 'is-active', self.service_name, '--quiet'])
+        except Exception as e:
+            return False
+        
+        return True
 
     @staticmethod
     def create_user(user, passwd):

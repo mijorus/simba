@@ -11,7 +11,13 @@
       </object>
     </child>
     <child>
-      <object class="AdwPreferencesPage">
+      <object class="AdwBanner" id="not_supported_banner">
+        <property name="title" translatable="yes">Print service is not supported on your sistem</property>
+        <property name="revealed">false</property>
+      </object>
+    </child>
+    <child>
+      <object class="AdwPreferencesPage" id="pref_widget">
         <child>
           <object class="AdwPreferencesGroup">
             <child type="header-suffix">
@@ -36,7 +42,13 @@
           </object>
         </child>
         <child>
+          <object class="AdwPreferencesGroup" id="printers_list">
+            <property name="title" translatable="yes">Detected printers</property>
+          </object>
+        </child>
+        <child>
           <object class="AdwPreferencesGroup">
+            <property name="visible">false</property>
             <property name="title" translatable="yes">Access control</property>
             <child>
               <object class="AdwSwitchRow" id="restrict_access">

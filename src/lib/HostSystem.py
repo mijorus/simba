@@ -189,6 +189,19 @@ class HostSystem():
         return True
     
     @staticmethod
+    def list_printers() -> list[str]:
+        printers = []
+
+        try:
+            terminal.host_sh(['which', 'lpstat'])
+            output = terminal.host_sh(['lpstat', '-e'])
+            printers = output.split('\n')
+        except Exception as e:
+            pass
+
+        return printers
+
+    @staticmethod
     def list_saved_networks() -> list[NetworkName]:
         result = terminal.host_sh(['nmcli', '--get-values=UUID,NAME,TYPE', '--colors=no', 'connection', 'show'])
         items = []

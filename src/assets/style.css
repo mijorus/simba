@@ -10,3 +10,11 @@
 .warning-row {
     background-color: alpha(@warning_color, 0.08);
 }
+
+.service-status-dot {
+    color: @error_color;
+}
+
+.service-status-dot.active {
+    color: @success_color;
+}

@@ -4,6 +4,7 @@ import traceback
 import gi
 
 from ..lib.SambaConfig import SambaConfig, SambaUser
+from ..lib.HostSystem import HostSystem
 
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
@@ -21,12 +22,16 @@ class PrintersWidget(Gtk.Box):
     allowed_users_group = Gtk.Template.Child()
     add_user_button = Gtk.Template.Child()
     save_button = Gtk.Template.Child()
+    not_supported_banner = Gtk.Template.Child()
+    pref_widget = Gtk.Template.Child()
+    printers_list = Gtk.Template.Child()
 
     def __init__(self, manager: SambaConfig, **kwargs):
         super().__init__(**kwargs)
         self.manager = manager
         self.samba_users: list[SambaUser] = []
         self.allowed_users: list[SambaUser] = []
+        self.printer_rows = []
         self.user_rows: list[tuple[SambaUser, Adw.ActionRow]] = []
         self._users_loaded = False
         self._loading = False
@@ -35,23 +40,62 @@ class PrintersWidget(Gtk.Box):
         self.enable_print_service.connect('notify::active', self._on_enable_service_toggled)
         self.auth_banner.connect('button-clicked', self._on_auth_banner_clicked)
         self.add_user_button.connect('clicked', self._on_add_user_clicked)
+        self.save_button.connect('clicked', self._on_save_btn_clicked)
 
     def reload(self):
         self._loading = True
         self._users_loaded = False
+        self.allowed_users = []
         self.save_button.set_sensitive(False)
         self.enable_print_service.set_active(False)
         self.auth_banner.set_revealed(False)
         self.add_user_button.set_sensitive(False)
+        self.not_supported_banner.set_revealed(False)
+        self.printers_list.set_visible(False)
+
+        for r in self.printer_rows:
+            self.printers_list.remove(r)
+
+        self.printer_rows = []
+
+        if self.manager.is_printing_supported():
+            self.pref_widget.set_sensitive(True)
+            enabled = self.manager.data[self.manager.DEFAULT_SECTION].get('load printers', False)
+            self.save_button.set_sensitive(False)
+            self.enable_print_service.set_active(enabled)
+
+            if enabled:
+                self.printers_list.set_visible(True)
+
+                for p in HostSystem.list_printers():            
+                    print_icon = Gtk.Image(icon_name='sb-printer2')
+                    printer_row = Adw.ActionRow(title=p)
+                    printer_row.add_prefix(print_icon)
+                    self.printers_list.add(printer_row)
+                    self.printer_rows.append(printer_row)
+        else:
+            self.pref_widget.set_sensitive(False)
+            self.not_supported_banner.set_revealed(True)
+
         self._loading = False
 
     def enable_save_button(self):
         if not self._loading:
             self.save_button.set_sensitive(True)
 
+    def _on_save_btn_clicked(self, *args):
+        users = None
+
+        if self.restrict_access.get_active():
+            users = self.allowed_users
+
+        enabled = self.enable_print_service.get_active()
+        self.manager.set_print_service(enabled, restricted_users=users)
+        self.manager.save()
+        self.reload()
+
     def _on_enable_service_toggled(self, widget: Adw.SwitchRow, *args):
-        enabled = widget.get_active()
-        self.manager.set_print_service(enabled)
+        self.save_button.set_sensitive(True)
 
     def _on_restrict_access_toggled(self, switch, _):
         active = switch.get_active()
