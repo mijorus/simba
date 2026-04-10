@@ -4,6 +4,7 @@
         <file>ui/shortcuts.ui</file>
         <file>ui/menu.ui</file>
         <file>ui/unsupported_config.ui</file>
+        <file>ui/samba_not_installed.ui</file>
         <file>ui/preferences.ui</file>
         <file>ui/sharedfolders.ui</file>
         <file>ui/userslist.ui</file>

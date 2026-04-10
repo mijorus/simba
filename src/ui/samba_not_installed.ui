@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+    <template class="SambaNotInstalled" parent="GtkBox">
+        <property name="orientation">1</property>
+        <child>
+            <object class="AdwStatusPage">
+                <property name="title" translatable="yes">Samba is not installed</property>
+                <property name="description" translatable="yes">Install Samba using your package manager, then restart Simba.</property>
+                <property name="icon-name">sb-network-server-symbolic</property>
+                <property name="vexpand">true</property>
+                <child>
+                    <object class="GtkBox">
+                        <property name="orientation">1</property>
+                        <property name="spacing">20</property>
+                        <property name="halign">center</property>
+                        <property name="width-request">380</property>
+                        <child>
+                            <object class="GtkBox">
+                                <property name="orientation">1</property>
+                                <property name="spacing">6</property>
+                                <child>
+                                    <object class="GtkLabel" id="dnf_title">
+                                        <property name="label" translatable="yes">Fedora / RHEL</property>
+                                        <property name="xalign">0</property>
+                                        <style>
+                                            <class name="heading"/>
+                                        </style>
+                                    </object>
+                                </child>
+                                <child>
+                                    <object class="GtkBox">
+                                        <property name="orientation">0</property>
+                                        <property name="margin-start">12</property>
+                                        <property name="margin-end">12</property>
+                                        <property name="margin-top">10</property>
+                                        <property name="margin-bottom">10</property>
+                                        <style>
+                                            <class name="card"/>
+                                        </style>
+                                        <child>
+                                            <object class="GtkLabel">
+                                                <property name="label">sudo dnf install samba</property>
+                                                <property name="selectable">true</property>
+                                                <property name="xalign">0</property>
+                                                <property name="hexpand">true</property>
+                                                <property name="margin-start">12</property>
+                                                <property name="margin-end">12</property>
+                                                <property name="margin-top">10</property>
+                                                <property name="margin-bottom">10</property>
+                                                <style>
+                                                    <class name="monospace"/>
+                                                </style>
+                                            </object>
+                                        </child>
+                                    </object>
+                                </child>
+                            </object>
+                        </child>
+                        <child>
+                            <object class="GtkBox">
+                                <property name="orientation">1</property>
+                                <property name="spacing">6</property>
+                                <child>
+                                    <object class="GtkLabel" id="apt_title">
+                                        <property name="label" translatable="yes">Ubuntu / Debian</property>
+                                        <property name="xalign">0</property>
+                                        <style>
+                                            <class name="heading"/>
+                                        </style>
+                                    </object>
+                                </child>
+                                <child>
+                                    <object class="GtkBox">
+                                        <property name="orientation">0</property>
+                                        <property name="margin-start">12</property>
+                                        <property name="margin-end">12</property>
+                                        <property name="margin-top">10</property>
+                                        <property name="margin-bottom">10</property>
+                                        <style>
+                                            <class name="card"/>
+                                        </style>
+                                        <child>
+                                            <object class="GtkLabel">
+                                                <property name="label">sudo apt install samba</property>
+                                                <property name="selectable">true</property>
+                                                <property name="xalign">0</property>
+                                                <property name="hexpand">true</property>
+                                                <property name="margin-start">12</property>
+                                                <property name="margin-end">12</property>
+                                                <property name="margin-top">10</property>
+                                                <property name="margin-bottom">10</property>
+                                                <style>
+                                                    <class name="monospace"/>
+                                                </style>
+                                            </object>
+                                        </child>
+                                    </object>
+                                </child>
+                            </object>
+                        </child>
+                    </object>
+                </child>
+            </object>
+        </child>
+    </template>
+    <requires lib="gtk" version="4.0" />
+</interface>

@@ -9,6 +9,7 @@ from .components.Preferences import Preferences
 from .components.UsersList import UsersList
 from .components.PrintersWidget import PrintersWidget
 from .components.Warnings import Warnings
+from .components.SambaNotInstalled import SambaNotInstalled
 from .lib import async_utils
 
 gi.require_version('Gtk', '4.0')
@@ -120,7 +121,7 @@ class MainWindow(Adw.Window):
             self.set_content(split_view)
         else:
             toolbar_view = Adw.ToolbarView(
-                content=Gtk.Label.new('Samba is not installed')
+                content=SambaNotInstalled()
             )
             toolbar_view.add_top_bar(Adw.HeaderBar(
                 title_widget=Gtk.Label.new(window_title)
