@@ -1,6 +1,6 @@
 # Simba
 
-<p align="center"><img width="200px" src="docs/it.mijorus.simba.png" /></p>
+<p align="center"><img width="200px" src="data/icons/hicolor/scalable/apps/it.mijorus.simba.svg" /></p>
 
 
 Work in progress SAMBA manager UI for linux.
