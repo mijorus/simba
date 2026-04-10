@@ -43,6 +43,7 @@ class Preferences(Gtk.Box):
         self.logfile_row.connect('notify::text', self.on_form_value_change)
         self.usershare_max_shares_row.connect('notify::value', self.on_form_value_change)
         self.usershare_enabled.connect('notify::active', self.on_form_value_change)
+        self.allow_only_toggle.connect('notify::active', self.on_form_value_change)
 
         self.save_button.set_sensitive(True)
 
@@ -70,6 +71,7 @@ class Preferences(Gtk.Box):
 
             for n in networks:
                 row = Adw.SwitchRow(title=n.name, subtitle=n._type.capitalize())
+                row.connect('notify::active', self.on_form_value_change)
                 row.set_active(n.uuid in enabled_networks)
                 self.allow_networks.add_row(row)
                 self.allow_networks_rows.append((n, row))
