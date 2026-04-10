@@ -439,7 +439,8 @@ class SambaConfig():
 
     def is_service_active(self):
         try:
-            terminal.host_sh(['systemctl', 'is-active', self.service_name, '--quiet'])
+            terminal.host_sh(['systemctl', 'is-active', self.service_name, '--quiet'],
+                             hide_log=True)
         except Exception as e:
             return False
         
