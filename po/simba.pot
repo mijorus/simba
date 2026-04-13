@@ -1,0 +1,363 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-04-13 18:27+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: data/it.mijorus.simba.desktop.in:2
+msgid "simba"
+msgstr ""
+
+#: src/MainWindow.py:22
+msgid "Simba"
+msgstr ""
+
+#: src/MainWindow.py:50
+msgid "Shared folders"
+msgstr ""
+
+#: src/MainWindow.py:51
+msgid "Users list"
+msgstr ""
+
+#: src/MainWindow.py:52
+msgid "Printers and devices"
+msgstr ""
+
+#: src/MainWindow.py:53 src/ui/menu.ui:6
+msgid "Preferences"
+msgstr ""
+
+#: src/MainWindow.py:57 src/components/Warnings.py:23
+msgid "Warnings"
+msgstr ""
+
+#: src/MainWindow.py:154
+msgid "Service is running"
+msgstr ""
+
+#: src/MainWindow.py:157
+msgid "Service is not running"
+msgstr ""
+
+#: src/components/EditShareDialog.py:32
+msgid "Create share"
+msgstr ""
+
+#: src/components/EditShareDialog.py:32
+msgid "Edit share"
+msgstr ""
+
+#: src/components/EditShareDialog.py:36
+msgid "_Cancel"
+msgstr ""
+
+#: src/components/EditShareDialog.py:37
+msgid "_Save"
+msgstr ""
+
+#: src/components/EditShareDialog.py:56
+msgid "Name"
+msgstr ""
+
+#: src/components/EditShareDialog.py:58
+msgid ""
+"How share will be visible on the network. Only numbers, letters and dashes "
+"are allowed"
+msgstr ""
+
+#: src/components/EditShareDialog.py:67
+msgid "Description"
+msgstr ""
+
+#: src/components/EditShareDialog.py:70
+msgid "Additional information that might be helpful to identify this share"
+msgstr ""
+
+#: src/components/EditShareDialog.py:77 src/components/FolderShare.py:63
+msgid "Path"
+msgstr ""
+
+#: src/components/EditShareDialog.py:89
+msgid "Force connecting as a specific user"
+msgstr ""
+
+#: src/components/EditShareDialog.py:90
+msgid ""
+"When enabled, file operations on this share will be recorded as a pre-"
+"defined user"
+msgstr ""
+
+#: src/components/EditShareDialog.py:96
+msgid "Connect as..."
+msgstr ""
+
+#: src/components/EditShareDialog.py:108 src/components/FolderShare.py:72
+msgid "Read only"
+msgstr ""
+
+#: src/components/EditShareDialog.py:109
+msgid ""
+"When a share is set as read-only, clients will not be able to modify, create "
+"or delete files"
+msgstr ""
+
+#: src/components/EditShareDialog.py:175
+msgid "Select a folder"
+msgstr ""
+
+#: src/components/FolderShare.py:40
+msgid "Edit"
+msgstr ""
+
+#: src/components/FolderShare.py:50 src/components/PrintersWidget.py:170
+#: src/components/UsersList.py:100
+msgid "Remove"
+msgstr ""
+
+#: src/components/FolderShare.py:72
+msgid "The content of this share can't be modified"
+msgstr ""
+
+#: src/components/FormRow.py:58
+#, python-brace-format
+msgid " (max. {max_char})"
+msgstr ""
+
+#: src/components/FormRow.py:61
+#, python-brace-format
+msgid " (min. {min_char}, max. {max_char})"
+msgstr ""
+
+#: src/components/PrintersWidget.py:129 src/components/UserFormDialog.py:22
+#: src/ui/printers_widget.ui:72
+msgid "Add user"
+msgstr ""
+
+#: src/components/PrintersWidget.py:134 src/components/UserFormDialog.py:56
+msgid "Select a user"
+msgstr ""
+
+#: src/components/UserFormDialog.py:36
+msgid "New user"
+msgstr ""
+
+#: src/components/UserFormDialog.py:39
+msgid "Existing system user"
+msgstr ""
+
+#: src/components/UserFormDialog.py:70
+msgid ""
+"The name of the new user to create, only lowercase letters and numbers are "
+"accepted"
+msgstr ""
+
+#: src/components/UserFormDialog.py:105
+msgid "Password confirm"
+msgstr ""
+
+#: src/components/UserFormDialog.py:120
+msgid "Cancel"
+msgstr ""
+
+#: src/components/UserFormDialog.py:121 src/ui/preferences.ui:12
+#: src/ui/printers_widget.ui:25 src/ui/sharedfolders.ui:21
+msgid "Save"
+msgstr ""
+
+#: src/ui/menu.ui:10
+msgid "Shortcuts"
+msgstr ""
+
+#: src/ui/menu.ui:15
+msgid "What's new?"
+msgstr ""
+
+#: src/ui/menu.ui:19
+msgid "Install GNOME extension"
+msgstr ""
+
+#: src/ui/menu.ui:23
+msgid "Translate this app"
+msgstr ""
+
+#: src/ui/menu.ui:26
+msgid "About"
+msgstr ""
+
+#: src/ui/preferences.ui:22
+msgid "Workgroup"
+msgstr ""
+
+#: src/ui/preferences.ui:23
+msgid ""
+"This setting controls what workgroup your server will appear to be in; "
+"changing it from the default value \"WORKGROUP\" might impact the ability to "
+"connect to this computer."
+msgstr ""
+
+#: src/ui/preferences.ui:33
+msgid "NetBIOS name"
+msgstr ""
+
+#: src/ui/preferences.ui:34
+msgid ""
+"This sets the name of the current machine; usually you can access this "
+"machine by its local IP address or the NetBIOS name."
+msgstr ""
+
+#: src/ui/preferences.ui:44
+msgid "User shares"
+msgstr ""
+
+#: src/ui/preferences.ui:45
+msgid ""
+"Allow specific users to create and manage their own shared folders; this "
+"enables integrations with some file managers like Thunar or Dolphin"
+msgstr ""
+
+#: src/ui/preferences.ui:68
+msgid "Security"
+msgstr ""
+
+#: src/ui/preferences.ui:86
+msgid "Debugging"
+msgstr ""
+
+#: src/ui/printers_widget.ui:8
+msgid "Authentication required to manage allowed users"
+msgstr ""
+
+#: src/ui/printers_widget.ui:10 src/ui/userslist.ui:10
+msgid "Unlock"
+msgstr ""
+
+#: src/ui/printers_widget.ui:15
+msgid "Print service is not supported on your sistem"
+msgstr ""
+
+#: src/ui/printers_widget.ui:35
+msgid "Print service"
+msgstr ""
+
+#: src/ui/printers_widget.ui:38
+msgid "Enable print service"
+msgstr ""
+
+#: src/ui/printers_widget.ui:39
+msgid "Share printers connected to this computer over the network"
+msgstr ""
+
+#: src/ui/printers_widget.ui:46
+msgid "Detected printers"
+msgstr ""
+
+#: src/ui/printers_widget.ui:52
+msgid "Access control"
+msgstr ""
+
+#: src/ui/printers_widget.ui:55
+msgid "Restrict access"
+msgstr ""
+
+#: src/ui/printers_widget.ui:56
+msgid "Only allow specific users to use the print service"
+msgstr ""
+
+#: src/ui/printers_widget.ui:63
+msgid "Allowed users"
+msgstr ""
+
+#: src/ui/samba_not_installed.ui:7
+msgid "Samba is not installed"
+msgstr ""
+
+#: src/ui/samba_not_installed.ui:8
+msgid "Install Samba using your package manager, then restart Simba."
+msgstr ""
+
+#: src/ui/samba_not_installed.ui:23
+msgid "Fedora / RHEL"
+msgstr ""
+
+#: src/ui/samba_not_installed.ui:65
+msgid "Ubuntu / Debian"
+msgstr ""
+
+#: src/ui/shortcuts.ui:12
+msgid "Mouse"
+msgstr ""
+
+#: src/ui/shortcuts.ui:48 src/ui/shortcuts.ui:164
+msgid "Open the skintone selector (if available)"
+msgstr ""
+
+#: src/ui/shortcuts.ui:68 src/ui/shortcuts.ui:171
+msgid "Add a custom tag"
+msgstr ""
+
+#: src/ui/shortcuts.ui:109
+msgid "Keyboard"
+msgstr ""
+
+#: src/ui/shortcuts.ui:114
+msgid ""
+"Copy the selected emoji and hide the window (When an emoji is highlighted)"
+msgstr ""
+
+#: src/ui/shortcuts.ui:121
+msgid "Copy first emoji and hide the window (When using the search bar)"
+msgstr ""
+
+#: src/ui/shortcuts.ui:128
+msgid "Show the category on the right"
+msgstr ""
+
+#: src/ui/shortcuts.ui:135
+msgid "Show the category on the left"
+msgstr ""
+
+#: src/ui/shortcuts.ui:142
+msgid "Add an emoji to selection"
+msgstr ""
+
+#: src/ui/shortcuts.ui:150
+msgid "Remove the last emoji from the selection"
+msgstr ""
+
+#: src/ui/shortcuts.ui:157
+msgid "Copy the selection and hide the window, without the highlighted emoji"
+msgstr ""
+
+#: src/ui/unsupported_config.ui:7
+msgid "Unsupported configuration"
+msgstr ""
+
+#: src/ui/unsupported_config.ui:8
+msgid "A bar with contextual information"
+msgstr ""
+
+#: src/ui/unsupported_config.ui:18
+msgid "Fix"
+msgstr ""
+
+#: src/ui/userslist.ui:8
+msgid "Users management requires authentication"
+msgstr ""
+
+#: src/ui/userslist.ui:25
+msgid "Add"
+msgstr ""
