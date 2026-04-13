@@ -14,8 +14,8 @@ if desktop_utils.found()
 endif
 
 appstream_file = configure_file(
-        input: 'it.mijorus.simba.appdata.xml.in',
-       output: 'it.mijorus.simba.appdata.xml',
+        input: 'it.mijorus.simba.metainfo.xml.in',
+       output: 'it.mijorus.simba.metainfo.xml',
       install: true,
          copy: true,
   install_dir: join_paths(get_option('datadir'), 'appdata')

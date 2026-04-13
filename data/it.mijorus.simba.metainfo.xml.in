@@ -1,9 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop">
 	<id>it.mijorus.simba.desktop</id>
-	<metadata_license>CC0-1.0</metadata_license>
-	<project_license>GPL-3.0-or-later</project_license>
-	<description>
-	  <p>No description</p>
-	</description>
+    <name>Simba</name>
+    <summary>A Samba manager</summary>
+    <url type="donation">https://ko-fi.com/mijorus</url>
+    <url type="homepage">https://simba.mijorus.it</url>
+    <url type="bugtracker">https://github.com/mijorus/simba/issues</url>
+	<url type="vcs-browser">https://github.com/mijorus/simba</url>
+    <metadata_license>CC0-1.0</metadata_license>
+    <project_license>GPL-3.0-or-later</project_license>
+    <developer_name>Lorenzo Paderi</developer_name>
+    <description>
+        <p>
+			Note: this application is still in active development.
+			Simba is a simple UI to manage your local Samba server.
+		</p>
+    </description>
 </component>

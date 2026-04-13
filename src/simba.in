@@ -29,9 +29,9 @@ localedir = '@localedir@'
 
 sys.path.insert(1, pkgdatadir)
 signal.signal(signal.SIGINT, signal.SIG_DFL)
-locale.bindtextdomain('smile', localedir)
-locale.textdomain('smile')
-gettext.install('smile', localedir)
+locale.bindtextdomain('simba', localedir)
+locale.textdomain('simba')
+gettext.install('simba', localedir)
 
 if __name__ == '__main__':
     import gi

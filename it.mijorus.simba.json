@@ -26,7 +26,6 @@
         "*.a"
     ],
     "modules": [
-        "python3-requirements.json",
         {
             "name": "simba",
             "builddir": true,
