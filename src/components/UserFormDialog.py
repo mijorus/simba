@@ -67,7 +67,7 @@ class UserFormDialog(Adw.MessageDialog):
             max_length=32,
             validator=self.username_validator,
             after_validation=self.check_form_is_valid,
-            description=_('The name of the new system user that will be created, only letters and numbers are accepted')
+            description=_('The name of the new user to create, only lowercase letters and numbers are accepted')
         )
 
         self.form.append(self.username_row)
