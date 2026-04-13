@@ -32,9 +32,9 @@ def sandbox_sh(command: List[str], return_stderr=False, hide_log=False, **kwargs
         cmd = [*command]
 
         if hide_log:
-            print(f'Running ***')
+            logging.info(f'Running ***')
         else:
-            print(f'Running {command}')
+            logging.info(f'Running {command}')
 
         output = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, **kwargs)
         output.check_returncode()

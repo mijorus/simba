@@ -58,6 +58,7 @@ class MainWindow(Adw.Window):
                 pages.append((self.warnings_widget, 'warnings', wt, 'dialog-warning-symbolic'))
 
             self.view_stack = Adw.ViewStack(hexpand=True, vexpand=True)
+            self.view_stack.connect('notify::visible-child', self.on_view_stack_visible_child_changed)
             self.view_stack.add(self.unsuppoted_config)
             for widget, name, label, icon in pages:
                 self.view_stack.add_titled_with_icon(widget, name, label, icon)
@@ -128,6 +129,14 @@ class MainWindow(Adw.Window):
             ))
             self.set_content(toolbar_view)
 
+    def on_view_stack_visible_child_changed(self, *args):
+        child = self.view_stack.get_visible_child()
+            
+        if hasattr(child, 'reload') and self.config_manager:
+            self.config_manager.reload()
+            child.reload() # type: ignore
+
+
     def on_sidebar_row_activated(self, listbox, row):
         if not self.view_stack:
             return
@@ -136,10 +145,6 @@ class MainWindow(Adw.Window):
 
         if child:
             self.view_stack.set_visible_child(child)
-            
-            if hasattr(child, 'reload') and self.config_manager:
-                self.config_manager.reload()
-                child.reload() # type: ignore
 
     @async_utils._async
     def start_sambad_check(self):

@@ -206,8 +206,40 @@ class SambaConfig():
         return stored_hash == current_hash
 
     def init_with_defaults(self):
-        self.data.clear(    )
+        restore_shares: list[SambaShare] = []
+
+        for section in self.data.keys():
+            if section in self.RESERVED_SECTIONS:
+                continue
+
+            section_data = self.data[section]
+
+            if section_data.get('printable', False):
+                continue
+
+            logging.info('Trying to preserge current configuration...')
+
+            if (not section_data.get('path', '')):
+                continue
+
+            share = SambaShare(
+                name=section,
+                share_path=section_data.get('path'),
+                comment=section_data.get('comment', ''),
+                writeable=section_data.get('writeable', '') or section_data.get('writable', ''),
+                public=section_data.get('public', False),
+                force_user=section_data.get('force_user', None),
+                valid_users=[],
+            )
+
+            restore_shares.append(share)
+
+        self.data.clear()
         self.data['global'] = self.DEFAULT_GLOBAL_SECTION
+        self.data['global']['netbios name'] = terminal.sandbox_sh(['hostname'])
+
+        for r in restore_shares:
+            self.create_share(r)
 
     def save(self, allowed_networks=None):
         text_content = self._get_text_content()
