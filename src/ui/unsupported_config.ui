@@ -5,7 +5,7 @@
         <child>
             <object class="AdwStatusPage">
                 <property name="title" translatable="yes">Unsupported configuration</property>
-                <property name="description" translatable="yes">A bar with contextual information</property>
+                <property name="description" translatable="yes">To allow correct operation, this application creates and manages its own Samba configuration.</property>
                 <property name="vexpand">true</property>
                 <child>
                     <object class="GtkBox">
@@ -15,7 +15,7 @@
                             <object class="GtkButton" id="fix_button">
                                 <signal name="clicked" handler="fix_button_clicked" swapped="no" />
                                 <property name="halign">3</property>
-                                <property name="label" translatable="yes">Fix</property>
+                                <property name="label" translatable="yes">Restore a valid configuration</property>
                                 <style>
                                     <class name="pill" />
                                 </style>

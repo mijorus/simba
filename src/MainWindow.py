@@ -174,7 +174,24 @@ class MainWindow(Adw.Window):
 
     
     def on_fix_btn_clicked(self, *args):
-        if self.config_manager:
+        if not self.config_manager:
+            return
+
+        dialog = Adw.AlertDialog(
+            heading=_('Reset configuration?'),
+            body=_('This will overwrite the current configuration with a default one. Your existing configuration will be temporarily saved to .old.'),
+        )
+
+        dialog.add_response('cancel', _('Cancel'))
+        dialog.add_response('reset', _('Reset'))
+        dialog.set_response_appearance('reset', Adw.ResponseAppearance.DESTRUCTIVE)
+        dialog.set_default_response('cancel')
+        dialog.set_close_response('cancel')
+        dialog.connect('response', self._on_fix_dialog_response)
+        dialog.present(self)
+
+    def _on_fix_dialog_response(self, dialog, response):
+        if response == 'reset':
             self.config_manager.init_with_defaults()
             self.config_manager.save()
             self.refresh_valid_config()
