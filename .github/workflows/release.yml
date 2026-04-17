@@ -1,0 +1,34 @@
+name: Flatpak Release
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+    paths:
+      - 'meson.build'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: bilelmoussaoui/flatpak-github-actions:gnome-49
+      options: --privileged
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Generate release tag
+        id: tag
+        run: |
+          echo "::set-output name=release_tag::$(cat meson.build | grep "\sversion.*" | grep -oE "'([^']+)'" | sed "s/'//g")"
+      - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+        with:
+          bundle: simba-${{ steps.tag.outputs.release_tag }}-x86_64.flatpak
+          manifest-path: it.mijorus.simba.json
+      - name: Publish release package
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.tag.outputs.release_tag }}
+          files: simba-${{ steps.tag.outputs.release_tag }}-x86_64.flatpak
