@@ -28,6 +28,7 @@ class Simba(Adw.Application):
         self.version = kwargs['version']
         self.about = None
         self.window = None
+        self.last_about_key_pressed = None
 
     def do_handle_local_options(self, options):
         if options.contains('version'):
@@ -50,7 +51,7 @@ class Simba(Adw.Application):
             # when the last one is closed the application shuts down
             self.window = MainWindow(application=self)
 
-            # self.create_action("preferences", lambda w, e: self.on_preferences_action())
+            self.create_action('open_log_file', self.on_open_log_file)
             self.create_action("about", self.on_about_action)
 
         else:
@@ -58,10 +59,6 @@ class Simba(Adw.Application):
             self.window.on_activation()
 
         self.window.present()
-
-    # def on_preferences_action(self):
-    #     pref_window = Settings(self.application_id, transient_for=self.window)
-    #     pref_window.present()
 
     def create_action(self, name, callback):
         """ Add an Action and connect to a callback """
@@ -72,18 +69,39 @@ class Simba(Adw.Application):
     def on_about_action(self, widget, event):
         self.about = Adw.AboutWindow(
             version=self.version,
-            comments='An emoji picker',
-            application_name='simba',
+            comments='A Samba manager',
+            application_name='Simba',
             application_icon='it.mijorus.simba',
             developer_name='Lorenzo Paderi',
             website='https://simba.mijorus.it',
             issue_url='https://github.com/mijorus/simba',
             debug_info='Type the answer to life, the universe, and everything',
-            copyright='(C) 2022 Lorenzo Paderi\n\nLocalized tags by milesj/emojibase, licensed under the MIT License',
+            copyright='(C) 2026 Lorenzo Paderi',
         )
+
+        event_controller_keys = Gtk.EventControllerKey()
+        event_controller_keys.connect('key-pressed', self.on_about_key_pressed)
+        self.about.add_controller(event_controller_keys)
+
+        self.about.set_translator_credits(_("translator_credits"))
+        self.about.add_credit_section('Icon by', ['@gnoman'])
 
         self.about.set_transient_for(self.props.active_window)
         self.about.present()
+
+    def on_open_log_file(self, widget, event):
+        if not self.window:
+            return
+
+        log_gfile = Gio.File.new_for_path(LOG_FOLDER)
+        launcher = Gtk.FileLauncher.new(log_gfile)
+        launcher.launch()
+
+    def on_about_key_pressed(self, controller, keyval, keycode, state):
+        if (self.last_about_key_pressed == '4') and (Gdk.keyval_name(keyval) == '2'):
+            self.about.set_application_icon('it.mijorus.simba.lion')
+
+        self.last_about_key_pressed = Gdk.keyval_name(keyval)
 
 def main(version: str, datadir: str) -> None:
     log_file = f'{LOG_FOLDER}/{APP_NAME}.log'

@@ -100,10 +100,19 @@ class MainWindow(Adw.Window):
             sidebar_box.append(Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL))
             sidebar_box.append(status_box)
 
+            menu_button = self.create_menu_button()
+
+            header_bar = Adw.HeaderBar(
+                title_widget=Gtk.Label(label=f'<b>{window_title}</b>', use_markup=True)
+            )
+
+            header_bar.pack_end(menu_button)
+
             sidebar_toolbar = Adw.ToolbarView(content=sidebar_box)
-            sidebar_toolbar.add_top_bar(Adw.HeaderBar(
-                title_widget=Gtk.Label.new(window_title)
-            ))
+            sidebar_toolbar.add_top_bar(header_bar)
+
+            about_action = Gio.SimpleAction.new('about', None)
+            about_action.connect('activate', self.on_about_action)
 
             content_toolbar = Adw.ToolbarView(content=self.view_stack)
             content_toolbar.add_top_bar(Adw.HeaderBar())
@@ -173,6 +182,18 @@ class MainWindow(Adw.Window):
                 self.view_stack.set_visible_child(self.unsuppoted_config)
 
     
+    def on_about_action(self, *args):
+        about = Adw.AboutWindow(
+            transient_for=self,
+            application_name=_('Simba'),
+            application_icon='it.mijorus.simba',
+            version='0.1.0',
+            developer_name='Lorenzo Paderi',
+            license_type=Gtk.License.GPL_3_0,
+            website='https://github.com/mijorus/simba',
+        )
+        about.present()
+
     def on_fix_btn_clicked(self, *args):
         if not self.config_manager:
             return
@@ -195,3 +216,11 @@ class MainWindow(Adw.Window):
             self.config_manager.init_with_defaults()
             self.config_manager.save()
             self.refresh_valid_config()
+
+    # Create stuff
+    def create_menu_button(self):
+        builder = Gtk.Builder()
+        builder.add_from_resource('/it/mijorus/simba/ui/menu.ui')
+        menu = builder.get_object('primary_menu')
+
+        return Gtk.MenuButton(menu_model=menu, icon_name='open-menu-symbolic')

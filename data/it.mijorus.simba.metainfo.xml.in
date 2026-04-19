@@ -19,6 +19,12 @@
 		</p>
     </description>
     <releases>
+        <release type="stable" version="0.2.0" date="2026-04-19:00:00Z">
+            <description>
+                <p>- New icon!</p>
+                <p>- Added about section</p>
+            </description>
+        </release>
         <release type="stable" version="0.1.0" date="2026-04-13:00:00Z">
             <description>
                 <p>- First release</p>
