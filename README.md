@@ -12,7 +12,11 @@ A graphical Samba manager for Linux. Simba lets you manage your local Samba inst
 
 ### Latest release
 
-Download the latest `.flatpak` bundle from the [Releases page](../../releases/latest) and install it with:
+Download the latest `.flatpak` bundle from the [Releases page](../../releases/latest).
+
+On many modern distros, you can simply open the file and it should open the app store.
+
+Alternatively, install it with:
 
 ```sh
 flatpak install simba.flatpak
